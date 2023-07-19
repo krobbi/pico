@@ -21,7 +21,20 @@ pico.py <source> <target>
 
 ## Source
 The first argument, `<source>`, is the directory path to read the PNG files
-from. The method for selecting which PNG files are used is not yet documented.
+from.
+
+Every image in the directory ending in `.png` is checked in alphabetical order
+to see if it contains any of the following sequences:
+
+`256x`, `128x`, `96x`, `64x`, `48x`, `32x`, or `16x`.
+
+These sequences correspond to the expected size of the image in pixels. The
+sequences are checked from largest to smallest. If a sequence matches, the
+image is considered 'found' and any following images will not be checked
+against that sequence.
+
+If there are no found images, or if any found image fails to load or does not
+match its expected size, Pico will exit with an error.
 
 ## Target
 The second argument, `<target>`, is simply the file path to write the ICO file
