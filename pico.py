@@ -11,6 +11,17 @@ https://krobbi.github.io/license/2023/mit.txt
 
 import sys
 
+from typing import Self
+
+class PicoError(Exception):
+    """ A fatal exception handled by Pico. """
+    
+    def __init__(self: Self, message: str) -> None:
+        """ Initialize the Pico error's message. """
+        
+        super().__init__(message)
+
+
 def pico(source_path: str, target_path: str) -> None:
     """ Run Pico from a source path and a target path. """
     
@@ -22,11 +33,14 @@ def pico(source_path: str, target_path: str) -> None:
 def main(args: list[str]) -> int:
     """ Run Pico from arguments and return an exit code. """
     
-    if len(args) == 3:
+    try:
+        if len(args) != 3:
+            raise PicoError("Usage: 'pico.py <source> <target>'.")
+        
         pico(args[1], args[2])
         return 0
-    else:
-        print("Usage: 'pico.py <source> <target>'.", file=sys.stderr)
+    except PicoError as e:
+        print(e, file=sys.stderr)
         return 1
 
 
