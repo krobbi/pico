@@ -33,6 +33,9 @@ class Image:
     
     size: int
     """ The size of the image in pixels. """
+    
+    palette_size: int
+    """ The number of colors in the image's palette, if applicable. """
 
 
 class BinaryInput:
@@ -116,22 +119,20 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
     if not data.has(b"\x89PNG\r\n\x1a\n"):
         raise PicoError(f"File '{name}' is not a PNG image.")
     
-    # DEBUG: Show chunks in image.
-    print(f"Chunks in '{name}':")
+    palette_size: int = 0
     
     while True:
         chunk_length: int = data.get_u32()
         next_chunk_position: int = data.get_position() + chunk_length + 8
         
-        # DEBUG: Show chunks in image.
-        print(f" * {data._peek(4)}: {chunk_length} byte(s).")
-        
-        if data.has(b"IEND"):
+        if data.has(b"PLTE"):
+            palette_size = chunk_length // 3
+        elif data.has(b"IEND"):
             break
         
         data.seek(next_chunk_position)
     
-    return Image(name, size)
+    return Image(name, size, palette_size)
 
 
 def load_image(entry: os.DirEntry, size: int) -> Image:
@@ -190,7 +191,7 @@ def pico(source_path: str, target_path: str) -> None:
     print(f"Image(s):")
     
     for image in images:
-        print(f" * '{image.name}' ({image.size}x{image.size})")
+        print(f" * {image}")
 
 
 def main(args: list[str]) -> int:
