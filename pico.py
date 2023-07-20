@@ -36,6 +36,9 @@ class Image:
     
     palette_size: int
     """ The number of colors in the image's palette, if applicable. """
+    
+    bits_per_pixel: int
+    """ The number of bits per pixel in the image. """
 
 
 class BinaryInput:
@@ -76,6 +79,14 @@ class BinaryInput:
             return True
         else:
             return False
+    
+    
+    def get_u8(self: Self) -> int:
+        """
+        Get and return an 8-bit unsigned integer from the binary input.
+        """
+        
+        return self._get_uint(1)
     
     
     def get_u32(self: Self) -> int:
@@ -120,6 +131,7 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
         raise PicoError(f"File '{name}' is not a PNG image.")
     
     palette_size: int = 0
+    bits_per_pixel: int = 32
     
     while True:
         chunk_length: int = data.get_u32()
@@ -135,6 +147,34 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
                 raise PicoError(f"Image '{name}' is not square.")
             elif width != size:
                 raise PicoError(f"Image '{name}' is not {size} pixels.")
+            
+            bit_depth: int = data.get_u8()
+            color_type: int = data.get_u8()
+            allowed_bit_depths: list[int]
+            samples_per_pixel: int
+            
+            if color_type == 0:
+                samples_per_pixel = 1 # Grayscale.
+                allowed_bit_depths = [1, 2, 4, 8, 16]
+            elif color_type == 2:
+                samples_per_pixel = 3 # True color.
+                allowed_bit_depths = [8, 16]
+            elif color_type == 3:
+                samples_per_pixel = 1 # Indexed.
+                allowed_bit_depths = [1, 2, 4, 8]
+            elif color_type == 4:
+                samples_per_pixel = 2 # Grayscale with alpha.
+                allowed_bit_depths = [8, 16]
+            elif color_type == 6:
+                samples_per_pixel = 4 # True color with alpha.
+                allowed_bit_depths = [8, 16]
+            else:
+                raise PicoError(f"Image '{name}' has an invalid color type.")
+            
+            if bit_depth not in allowed_bit_depths:
+                raise PicoError(f"Image '{name}' has an invalid bit depth.")
+            
+            bits_per_pixel = bit_depth * samples_per_pixel
         elif data.has(b"PLTE"):
             palette_size = chunk_length // 3
         elif data.has(b"IEND"):
@@ -142,7 +182,7 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
         
         data.seek(next_chunk_position)
     
-    return Image(name, size, palette_size)
+    return Image(name, size, palette_size, bits_per_pixel)
 
 
 def load_image(entry: os.DirEntry, size: int) -> Image:
