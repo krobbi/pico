@@ -125,7 +125,17 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
         chunk_length: int = data.get_u32()
         next_chunk_position: int = data.get_position() + chunk_length + 8
         
-        if data.has(b"PLTE"):
+        if data.has(b"IHDR"):
+            width: int = data.get_u32()
+            height: int = data.get_u32()
+            
+            if width < 1 or height < 1:
+                raise PicoError(f"Image '{name}' has an invalid size.")
+            elif width != height:
+                raise PicoError(f"Image '{name}' is not square.")
+            elif width != size:
+                raise PicoError(f"Image '{name}' is not {size} pixels.")
+        elif data.has(b"PLTE"):
             palette_size = chunk_length // 3
         elif data.has(b"IEND"):
             break
