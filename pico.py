@@ -50,6 +50,18 @@ class BinaryInput:
         self._data = data
     
     
+    def get_position(self: Self) -> int:
+        """ Return the binary input's position. """
+        
+        return self._position
+    
+    
+    def seek(self: Self, position: int) -> None:
+        """ Set the binary input's position. """
+        
+        self._position = position
+    
+    
     def has(self: Self, signature: bytes) -> bool:
         """
         Return whether the binary input has a signature and advance
@@ -63,6 +75,14 @@ class BinaryInput:
             return False
     
     
+    def get_u32(self: Self) -> int:
+        """
+        Get and return a 32-bit unsigned integer from the binary input.
+        """
+        
+        return self._get_uint(4)
+    
+    
     def _peek(self: Self, length: int) -> bytes:
         """ Peek and return a length of data from the binary input. """
         
@@ -72,6 +92,22 @@ class BinaryInput:
             return peeked
         else:
             raise PicoError("Could not read from input stream.")
+    
+    
+    def _get(self: Self, length: int) -> bytes:
+        """ Get and return a length of data from the binary input. """
+        
+        peeked: bytes = self._peek(length)
+        self._position += length
+        return peeked
+    
+    
+    def _get_uint(self: Self, length: int) -> int:
+        """
+        Get and return an unsigned integer from the binary input.
+        """
+        
+        return int.from_bytes(self._get(length), "big", signed=False)
 
 
 def decode_image(name: str, size: int, data: BinaryInput) -> Image:
@@ -79,6 +115,21 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
     
     if not data.has(b"\x89PNG\r\n\x1a\n"):
         raise PicoError(f"File '{name}' is not a PNG image.")
+    
+    # DEBUG: Show chunks in image.
+    print(f"Chunks in '{name}':")
+    
+    while True:
+        chunk_length: int = data.get_u32()
+        next_chunk_position: int = data.get_position() + chunk_length + 8
+        
+        # DEBUG: Show chunks in image.
+        print(f" * {data._peek(4)}: {chunk_length} byte(s).")
+        
+        if data.has(b"IEND"):
+            break
+        
+        data.seek(next_chunk_position)
     
     return Image(name, size)
 
