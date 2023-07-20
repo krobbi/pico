@@ -10,6 +10,7 @@ https://krobbi.github.io/license/2023/mit.txt
 """
 
 import os
+import struct
 import sys
 
 from dataclasses import dataclass
@@ -39,6 +40,9 @@ class Image:
     
     bits_per_pixel: int
     """ The number of bits per pixel in the image. """
+    
+    data: bytes
+    """ The image's data. """
 
 
 class BinaryInput:
@@ -54,6 +58,12 @@ class BinaryInput:
         """ Initialize the binary input's data. """
         
         self._data = data
+    
+    
+    def get_data(self: Self) -> bytes:
+        """ Return the binary input's data. """
+        
+        return self._data
     
     
     def get_position(self: Self) -> int:
@@ -124,6 +134,54 @@ class BinaryInput:
         return int.from_bytes(self._get(length), "big", signed=False)
 
 
+class BinaryOutput:
+    """ Binary data that can be written as a stream. """
+    
+    _data: bytearray
+    """ The binary output's data. """
+    
+    def __init__(self: Self) -> None:
+        """ Initialize the binary output's data. """
+        
+        self._data = bytearray()
+    
+    
+    def get_size(self: Self) -> int:
+        """ Return the binary output's size. """
+        
+        return len(self._data)
+    
+    
+    def get_data(self: Self) -> bytes:
+        """ Return the binary output's data. """
+        
+        return bytes(self._data)
+    
+    
+    def put(self: Self, data: bytes) -> None:
+        """ Put data to the binary output. """
+        
+        self._data += bytearray(data)
+    
+    
+    def put_u8(self: Self, value: int) -> None:
+        """ Put an unsigned 8-bit integer to the binary output. """
+        
+        self.put(struct.pack("<B", value))
+    
+    
+    def put_u16(self: Self, value: int) -> None:
+        """ Put an unsigned 16-bit integer to the binary output. """
+        
+        self.put(struct.pack("<H", value))
+    
+    
+    def put_u32(self: Self, value: int) -> None:
+        """ Put an unsigned 32-bit integer to the binary output. """
+        
+        self.put(struct.pack("<I", value))
+
+
 def decode_image(name: str, size: int, data: BinaryInput) -> Image:
     """ Decode and return an image from its name, size, and data. """
     
@@ -182,7 +240,7 @@ def decode_image(name: str, size: int, data: BinaryInput) -> Image:
         
         data.seek(next_chunk_position)
     
-    return Image(name, size, palette_size, bits_per_pixel)
+    return Image(name, size, palette_size, bits_per_pixel, data.get_data())
 
 
 def load_image(entry: os.DirEntry, size: int) -> Image:
@@ -192,7 +250,7 @@ def load_image(entry: os.DirEntry, size: int) -> Image:
         with open(entry, "rb") as file:
             data: BinaryInput = BinaryInput(file.read())
     except OSError:
-        raise PicoError(f"Could not read '{entry.name}'.")
+        raise PicoError(f"Could not read from '{entry.name}'.")
     
     return decode_image(entry.name, size, data)
 
@@ -230,6 +288,36 @@ def scan_dir_images(path: str) -> list[Image]:
         raise PicoError(f"Could not scan images from '{path}'.")
 
 
+def encode_icon(images: list[Image]) -> bytes:
+    """ Encode and return ICO data from a list of images. """
+    
+    index_data: BinaryOutput = BinaryOutput()
+    index_data.put_u16(0) # Reserved. Must always be 0.
+    index_data.put_u16(1) # Image type. 1 for icon, 2 for cursor.
+    index_data.put_u16(len(images)) # Number of images in the file.
+    
+    image_base: int = index_data.get_size() + len(images) * 16
+    image_data: BinaryOutput = BinaryOutput()
+    
+    for image in images:
+        if image.size == 256:
+            index_data.put_u8(0) # Image width in pixels.
+            index_data.put_u8(0) # Image height in pixels.
+        else:
+            index_data.put_u8(image.size) # Image width in pixels.
+            index_data.put_u8(image.size) # Image height in pixels.
+        
+        index_data.put_u8(image.palette_size) # Number of colors.
+        index_data.put_u8(0) # Reserved. Should be 0.
+        index_data.put_u16(0) # Color planes. Should be 0 or 1.
+        index_data.put_u16(image.bits_per_pixel) # Bits per pixel.
+        index_data.put_u32(len(image.data)) # Image data size in bytes.
+        index_data.put_u32(image_base + image_data.get_size())
+        image_data.put(image.data)
+    
+    return index_data.get_data() + image_data.get_data()
+
+
 def pico(source_path: str, target_path: str) -> None:
     """ Run Pico from a source path and a target path. """
     
@@ -238,10 +326,16 @@ def pico(source_path: str, target_path: str) -> None:
     if not images:
         raise PicoError(f"No valid images in '{source_path}'.")
     
-    print(f"Image(s):")
+    try:
+        with open(target_path, "wb") as file:
+            file.write(encode_icon(images))
+    except OSError:
+        raise PicoError(f"Could not write to '{target_path}'.")
     
-    for image in images:
-        print(f" * {image}")
+    print(f"Packed {len(images)} image(s) to '{target_path}':")
+    
+    for index, image in enumerate(images):
+        print(f" * {index + 1}: '{image.name}'")
 
 
 def main(args: list[str]) -> int:
