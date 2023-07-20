@@ -134,54 +134,6 @@ class BinaryInput:
         return int.from_bytes(self._get(length), "big", signed=False)
 
 
-class BinaryOutput:
-    """ Binary data that can be written as a stream. """
-    
-    _data: bytearray
-    """ The binary output's data. """
-    
-    def __init__(self: Self) -> None:
-        """ Initialize the binary output's data. """
-        
-        self._data = bytearray()
-    
-    
-    def get_size(self: Self) -> int:
-        """ Return the binary output's size. """
-        
-        return len(self._data)
-    
-    
-    def get_data(self: Self) -> bytes:
-        """ Return the binary output's data. """
-        
-        return bytes(self._data)
-    
-    
-    def put(self: Self, data: bytes) -> None:
-        """ Put data to the binary output. """
-        
-        self._data += bytearray(data)
-    
-    
-    def put_u8(self: Self, value: int) -> None:
-        """ Put an unsigned 8-bit integer to the binary output. """
-        
-        self.put(struct.pack("<B", value))
-    
-    
-    def put_u16(self: Self, value: int) -> None:
-        """ Put an unsigned 16-bit integer to the binary output. """
-        
-        self.put(struct.pack("<H", value))
-    
-    
-    def put_u32(self: Self, value: int) -> None:
-        """ Put an unsigned 32-bit integer to the binary output. """
-        
-        self.put(struct.pack("<I", value))
-
-
 def decode_image(name: str, size: int, data: BinaryInput) -> Image:
     """ Decode and return an image from its name, size, and data. """
     
@@ -291,31 +243,47 @@ def scan_dir_images(path: str) -> list[Image]:
 def encode_icon(images: list[Image]) -> bytes:
     """ Encode and return ICO data from a list of images. """
     
-    index_data: BinaryOutput = BinaryOutput()
-    index_data.put_u16(0) # Reserved. Must always be 0.
-    index_data.put_u16(1) # Image type. 1 for icon, 2 for cursor.
-    index_data.put_u16(len(images)) # Number of images in the file.
+    def put_u8(value: int) -> None:
+        """ Put an 8-bit unsigned integer to the index data. """
+        
+        nonlocal index_data
+        index_data += bytearray(struct.pack("<B", value & 0xff))
     
-    image_base: int = index_data.get_size() + len(images) * 16
-    image_data: BinaryOutput = BinaryOutput()
+    
+    def put_u16(value: int) -> None:
+        """ Put a 16-bit unsigned integer to the index data. """
+        
+        nonlocal index_data
+        index_data += bytearray(struct.pack("<H", value & 0xffff))
+    
+    
+    def put_u32(value: int) -> None:
+        """ Put a 32-bit unsigned integer to the index data. """
+        
+        nonlocal index_data
+        index_data += bytearray(struct.pack("<I", value & 0xffff_ffff))
+    
+    
+    index_data: bytearray = bytearray()
+    put_u16(0) # Reserved. Must always be 0.
+    put_u16(1) # Image type. 1 for icon, 2 for cursor.
+    put_u16(len(images)) # Number of images in the file.
+    
+    image_base: int = len(index_data) + len(images) * 16
+    image_data: bytearray = bytearray()
     
     for image in images:
-        if image.size == 256:
-            index_data.put_u8(0) # Image width in pixels.
-            index_data.put_u8(0) # Image height in pixels.
-        else:
-            index_data.put_u8(image.size) # Image width in pixels.
-            index_data.put_u8(image.size) # Image height in pixels.
-        
-        index_data.put_u8(image.palette_size) # Number of colors.
-        index_data.put_u8(0) # Reserved. Should be 0.
-        index_data.put_u16(0) # Color planes. Should be 0 or 1.
-        index_data.put_u16(image.bits_per_pixel) # Bits per pixel.
-        index_data.put_u32(len(image.data)) # Image data size in bytes.
-        index_data.put_u32(image_base + image_data.get_size())
-        image_data.put(image.data)
+        put_u8(image.size) # Image width in pixels.
+        put_u8(image.size) # Image height in pixels.
+        put_u8(image.palette_size) # Number of colors.
+        put_u8(0) # Reserved. Should be 0.
+        put_u16(0) # Color planes. Should be 0 or 1.
+        put_u16(image.bits_per_pixel) # Bits per pixel.
+        put_u32(len(image.data)) # Image data size in bytes.
+        put_u32(image_base + len(image_data)) # Image offset in bytes.
+        image_data += bytearray(image.data) # Image data blob.
     
-    return index_data.get_data() + image_data.get_data()
+    return bytes(index_data + image_data)
 
 
 def pico(source_path: str, target_path: str) -> None:
