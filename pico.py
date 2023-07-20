@@ -35,10 +35,64 @@ class Image:
     """ The size of the image in pixels. """
 
 
+class BinaryInput:
+    """ Binary data that can be read as a stream. """
+    
+    _position: int = 0
+    """ The current position in the binary input's data. """
+    
+    _data: bytes
+    """ The binary input's data. """
+    
+    def __init__(self: Self, data: bytes) -> None:
+        """ Initialize the binary input's data. """
+        
+        self._data = data
+    
+    
+    def has(self: Self, signature: bytes) -> bool:
+        """
+        Return whether the binary input has a signature and advance
+        beyond it if it does.
+        """
+        
+        if self._peek(len(signature)) == signature:
+            self._position += len(signature)
+            return True
+        else:
+            return False
+    
+    
+    def _peek(self: Self, length: int) -> bytes:
+        """ Peek and return a length of data from the binary input. """
+        
+        peeked: bytes = self._data[self._position : self._position + length]
+        
+        if len(peeked) == length:
+            return peeked
+        else:
+            raise PicoError("Could not read from input stream.")
+
+
+def decode_image(name: str, size: int, data: BinaryInput) -> Image:
+    """ Decode and return an image from its name, size, and data. """
+    
+    if not data.has(b"\x89PNG\r\n\x1a\n"):
+        raise PicoError(f"File '{name}' is not a PNG image.")
+    
+    return Image(name, size)
+
+
 def load_image(entry: os.DirEntry, size: int) -> Image:
     """ Load and return an image from a directory entry and a size. """
     
-    return Image(entry.name, size)
+    try:
+        with open(entry, "rb") as file:
+            data: BinaryInput = BinaryInput(file.read())
+    except OSError:
+        raise PicoError(f"Could not read '{entry.name}'.")
+    
+    return decode_image(entry.name, size, data)
 
 
 def scan_dir_images(path: str) -> list[Image]:
@@ -57,7 +111,7 @@ def scan_dir_images(path: str) -> list[Image]:
                             index: int = 0
                             
                             while index < len(images):
-                                if images[index].size < size:
+                                if size > images[index].size:
                                     break
                                 
                                 index += 1
