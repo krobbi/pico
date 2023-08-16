@@ -19,10 +19,14 @@ from typing import Self
 class PicoError(Exception):
     """ A fatal exception handled by Pico. """
     
+    message: str
+    """ The Pico error's message. """
+    
     def __init__(self: Self, message: str) -> None:
         """ Initialize the Pico error's message. """
         
         super().__init__(message)
+        self.message = message
 
 
 @dataclass
@@ -306,19 +310,17 @@ def pico(source_path: str, target_path: str) -> None:
         print(f" * {index + 1}: '{image.name}'")
 
 
-def main(args: list[str]) -> int:
-    """ Run Pico from arguments and return an exit code. """
+def main() -> None:
+    """ Run Pico from arguments and exit if an error occured. """
     
     try:
-        if len(args) != 3:
+        if len(sys.argv) != 3:
             raise PicoError("Usage: 'pico.py <source> <target>'.")
         
-        pico(args[1], args[2])
-        return 0
-    except PicoError as e:
-        print(e, file=sys.stderr)
-        return 1
+        pico(sys.argv[1], sys.argv[2])
+    except PicoError as pico_error:
+        sys.exit(pico_error.message)
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    main()
