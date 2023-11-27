@@ -1,12 +1,9 @@
-# Python:
-__pycache__/*
-*$py.class
-*.pyc
-*.pyd
-*.pyo
-
-# Ignore:
-ignore/*
+# Rust:
+target/*
+Cargo.lock
+*.exe
+*.pdb
+*.rs.bk
 
 # IDE:
 .idea/*
