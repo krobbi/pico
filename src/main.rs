@@ -1,4 +1,7 @@
-/// Display a hello world message.
+mod config;
+
+/// Display the configured source path.
 fn main() {
-    println!("Hello, Pico!");
+    let config = config::Config::from_args();
+    println!("Source path: {}", config.source_path);
 }
