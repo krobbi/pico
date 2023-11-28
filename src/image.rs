@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
+
+use png::Decoder;
 
 /// PNG image data.
 pub struct Image {
@@ -28,12 +30,32 @@ impl Image {
             ));
         }
 
+        let data = match fs::read(path) {
+            Ok(data) => data,
+            Err(error) => return Err(error.to_string()),
+        };
+
+        Image::from_data(data)
+    }
+
+    /// Create a new image from data.
+    fn from_data(data: Vec<u8>) -> Result<Image, String> {
+        let decoder = Decoder::new(data.as_slice());
+        let reader = match decoder.read_info() {
+            Ok(reader) => reader,
+            Err(error) => return Err(error.to_string()),
+        };
+        let info = reader.info();
+
         Ok(Image {
-            width: 1,
-            height: 2,
-            palette_size: Some(3),
-            bits_per_pixel: 4,
-            data: vec![1, 2, 3, 4, 5],
+            width: info.width,
+            height: info.height,
+            palette_size: match &info.palette {
+                Some(palette) => Some(palette.len() as u16 / 3),
+                None => None,
+            },
+            bits_per_pixel: info.bits_per_pixel() as u8,
+            data,
         })
     }
 }
