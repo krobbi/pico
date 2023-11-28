@@ -20,9 +20,12 @@ pub struct Image {
 
 impl Image {
     /// Create a new image from a path.
-    pub fn from_path(path: &PathBuf) -> Result<Image, &str> {
+    pub fn from_path(path: &PathBuf) -> Result<Image, String> {
         if !path.is_file() {
-            return Err("Source PNG file does not exist.");
+            return Err(format!(
+                "Source PNG file '{}' does not exist.",
+                path.display()
+            ));
         }
 
         Ok(Image {

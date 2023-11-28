@@ -11,7 +11,7 @@ fn main() {
     let config = Config::from_args();
     let image = match Image::from_path(&config.source_path) {
         Ok(image) => image,
-        Err(message) => bail(message),
+        Err(message) => bail(&message),
     };
 
     println!("Image info:");
