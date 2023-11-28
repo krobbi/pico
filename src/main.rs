@@ -1,17 +1,33 @@
 mod config;
+mod image;
 
 use std::process;
 
 use config::Config;
+use image::Image;
 
 /// Display the configured source path.
 fn main() {
     let config = Config::from_args();
-    println!("Source file: {}", config.source_path.display());
+    let image = match Image::from_path(&config.source_path) {
+        Ok(image) => image,
+        Err(message) => bail(message),
+    };
 
-    if !config.source_path.is_file() {
-        bail("Source file does not exist!");
+    println!("Image info:");
+    println!(" * {}x{} pixels.", image.width, image.height);
+
+    match image.palette_size {
+        Some(palette_size) => println!(" * {} color palette.", palette_size),
+        None => println!(" * No palette."),
     }
+
+    match image.bits_per_pixel {
+        1 => println!(" * 1 bit per pixel."),
+        bits_per_pixel => println!(" * {} bits per pixel.", bits_per_pixel),
+    }
+
+    println!(" * {} bytes of data.", image.data.len());
 }
 
 /// Exit with an error message.
