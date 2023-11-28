@@ -5,6 +5,9 @@ Cargo.lock
 *.pdb
 *.rs.bk
 
+# Ignore:
+ignore/*
+
 # IDE:
 .idea/*
 .vscode/*
