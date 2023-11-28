@@ -8,8 +8,8 @@ use image::Image;
 
 /// Display the configured source path.
 fn main() {
-    let config = Config::from_args();
-    let image = match Image::from_path(&config.source_path) {
+    let config = Config::new();
+    let image = match Image::new(&config.source_path) {
         Ok(image) => image,
         Err(message) => bail(&message),
     };

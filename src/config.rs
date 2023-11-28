@@ -9,8 +9,8 @@ pub struct Config {
 }
 
 impl Config {
-    /// Create a new config instance from command line arguments.
-    pub fn from_args() -> Config {
+    /// Create a new config using command line arguments.
+    pub fn new() -> Config {
         let args = command!()
             .arg(arg!(<source> "The source PNG file to read"))
             .get_matches();
