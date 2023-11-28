@@ -38,13 +38,21 @@ impl Image {
         Image::from_data(data)
     }
 
+    /// Create an optimized copy of the image.
+    pub fn optimize(&self) -> Image {
+        println!("TODO: Implement optimization.");
+        Image::from_data(self.data.clone()).unwrap()
+    }
+
     /// Create a new image from data.
     fn from_data(data: Vec<u8>) -> Result<Image, String> {
         let decoder = Decoder::new(data.as_slice());
+
         let reader = match decoder.read_info() {
             Ok(reader) => reader,
             Err(error) => return Err(error.to_string()),
         };
+
         let info = reader.info();
 
         Ok(Image {

@@ -9,10 +9,15 @@ use image::Image;
 /// Display the configured source path.
 fn main() {
     let config = Config::new();
-    let image = match Image::new(&config.source_path) {
+
+    let mut image = match Image::new(&config.source_path) {
         Ok(image) => image,
         Err(message) => bail(&message),
     };
+
+    if config.optimize {
+        image = image.optimize();
+    }
 
     println!("Image info:");
     println!(" * {}x{} pixels.", image.width, image.height);
