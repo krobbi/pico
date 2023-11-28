@@ -1,6 +1,8 @@
+mod optimize;
+
 use std::{fs, path::PathBuf};
 
-use png::Decoder;
+use png;
 
 /// PNG image data.
 pub struct Image {
@@ -38,15 +40,9 @@ impl Image {
         Image::from_data(data)
     }
 
-    /// Create an optimized copy of the image.
-    pub fn optimize(&self) -> Image {
-        println!("TODO: Implement optimization.");
-        Image::from_data(self.data.clone()).unwrap()
-    }
-
     /// Create a new image from data.
     fn from_data(data: Vec<u8>) -> Result<Image, String> {
-        let decoder = Decoder::new(data.as_slice());
+        let decoder = png::Decoder::new(data.as_slice());
 
         let reader = match decoder.read_info() {
             Ok(reader) => reader,
