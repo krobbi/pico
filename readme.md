@@ -4,7 +4,8 @@ __Copyright &copy; 2023 Chris Roberts__ (Krobbizoid).
 
 # Contents
 1. [Usage](#usage)
-2. [License](#license)
+2. [Dependencies](#dependencies)
+3. [License](#license)
 
 # Usage
 Pico aims to convert source PNG images to target ICO files by packing the PNG
@@ -18,6 +19,12 @@ line.
 Pico is in the process of being ported from Python to Rust so that it can be
 used as a native executable. I have minimal Rust experience and the Rust
 edition is not yet suitable for real-world use.
+
+# Dependencies
+Pico is made possible with the following fantastic libraries:
+* [clap](https://crates.io/crates/clap) - Command line argument parsing.
+* [oxipng](https://crates.io/crates/oxipng) - PNG optimization.
+* [png](https://crates.io/crates/png) - PNG parsing and validation.
 
 # License
 Pico is released under the MIT License:  
