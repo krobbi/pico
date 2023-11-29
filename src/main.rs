@@ -3,6 +3,7 @@ mod image;
 mod serialize;
 
 use std::fs;
+use std::path::PathBuf;
 use std::process;
 
 use config::Config;
@@ -19,22 +20,32 @@ fn main() {
         ));
     }
 
-    let mut image = match Image::new(&config.source_path) {
+    let data = serialize::serialize_ico(&read_images(&config));
+
+    if let Err(error) = fs::write(config.target_path, data.as_slice()) {
+        bail(&error.to_string());
+    }
+}
+
+/// Read a vector of images from configuration data or bail.
+fn read_images(config: &Config) -> Vec<Image> {
+    vec![read_image(&config.source_path, config.optimize)]
+}
+
+/// Read an image from a path and optimization status or bail.
+fn read_image(path: &PathBuf, optimize: bool) -> Image {
+    let image = match Image::new(path) {
         Ok(image) => image,
         Err(message) => bail(&message),
     };
 
-    if config.optimize {
-        image = match image.optimize() {
+    if optimize {
+        match image.optimize() {
             Ok(image) => image,
             Err(message) => bail(&message),
-        };
-    }
-
-    let data = serialize::serialize_ico(&vec![image]);
-
-    if let Err(error) = fs::write(config.target_path, data.as_slice()) {
-        bail(&error.to_string());
+        }
+    } else {
+        image
     }
 }
 
