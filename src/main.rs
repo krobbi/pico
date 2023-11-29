@@ -12,6 +12,13 @@ use image::Image;
 fn main() {
     let config = Config::new();
 
+    if config.target_path.is_file() && !config.force {
+        bail(&format!(
+            "Target ICO file '{}' already exists. Use '--force' to overwrite.",
+            config.target_path.display()
+        ));
+    }
+
     let mut image = match Image::new(&config.source_path) {
         Ok(image) => image,
         Err(message) => bail(&message),
