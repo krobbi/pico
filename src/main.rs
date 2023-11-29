@@ -16,7 +16,10 @@ fn main() {
     };
 
     if config.optimize {
-        image = image.optimize();
+        image = match image.optimize() {
+            Ok(image) => image,
+            Err(message) => bail(&message),
+        };
     }
 
     println!("Image info:");
