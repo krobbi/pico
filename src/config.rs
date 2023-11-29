@@ -9,6 +9,9 @@ pub struct Config {
 
     /// The path to the source PNG file.
     pub source_path: PathBuf,
+
+    /// The path to the target ICO file.
+    pub target_path: PathBuf,
 }
 
 impl Config {
@@ -17,11 +20,13 @@ impl Config {
         let args = command!()
             .arg(arg!(-o --opt "Optimize the source PNG file"))
             .arg(arg!(<source> "The source PNG file"))
+            .arg(arg!(<target> "The target ICO file"))
             .get_matches();
 
         Config {
             optimize: args.get_flag("opt"),
             source_path: args.get_one::<String>("source").unwrap().into(),
+            target_path: args.get_one::<String>("target").unwrap().into(),
         }
     }
 }
