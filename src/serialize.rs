@@ -32,7 +32,7 @@ impl Serialize for Vec<u8> {
 
 /// Serialize ICO data from a vector of images.
 pub fn serialize_ico(images: &Vec<Image>) -> Vec<u8> {
-    let mut ico = Vec::<u8>::new();
+    let mut ico = Vec::new();
 
     // Reserved, must always be 0.
     ico.put_u16(0);
@@ -51,7 +51,7 @@ pub fn serialize_ico(images: &Vec<Image>) -> Vec<u8> {
     );
 
     let mut offset = HEADER_SIZE + images.len() * ENTRY_SIZE;
-    let mut data = Vec::<u8>::new();
+    let mut data = Vec::new();
 
     for image in images {
         ico.append(&mut serialize_entry(image, offset));
@@ -65,7 +65,7 @@ pub fn serialize_ico(images: &Vec<Image>) -> Vec<u8> {
 
 /// Serialize an ICO entry using an image with a data offset.
 fn serialize_entry(image: &Image, offset: usize) -> Vec<u8> {
-    let mut entry = Vec::<u8>::with_capacity(ENTRY_SIZE);
+    let mut entry = Vec::with_capacity(ENTRY_SIZE);
 
     // Image width in pixels, value 0 means 256 pixels.
     entry.put_u8(match image.width {

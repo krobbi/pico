@@ -4,34 +4,41 @@ use clap::{arg, command};
 
 /// Configuration data for Pico.
 pub struct Config {
-    /// Whether to optimize the source PNG file.
-    pub optimize: bool,
+    /// The paths to the PNG input files.
+    pub input_paths: Vec<PathBuf>,
 
-    /// Whether to overwrite the target ICO file.
+    /// The path to the ICO output file.
+    pub output_path: PathBuf,
+
+    /// Whether to overwrite the ICO output file.
     pub force: bool,
 
-    /// The path to the source PNG file.
-    pub source_path: PathBuf,
-
-    /// The path to the target ICO file.
-    pub target_path: PathBuf,
+    /// Whether to optimize PNG input.
+    pub optimize: bool,
 }
 
 impl Config {
     /// Create a new config using command line arguments.
     pub fn new() -> Config {
         let args = command!()
-            .arg(arg!(-o --opt "Optimize the source PNG file"))
-            .arg(arg!(-f --force "Overwrite the target ICO file"))
-            .arg(arg!(<source> "The source PNG file"))
-            .arg(arg!(<target> "The target ICO file"))
+            .arg(arg!(<input> "The PNG input file"))
+            .arg(arg!(-o --output <path> "The ICO output file"))
+            .arg(arg!(-f --force "Overwrite the ICO output file"))
+            .arg(arg!(-z --optimize "Optimize PNG input"))
             .get_matches();
 
+        let input_path: PathBuf = args.get_one::<String>("input").unwrap().into();
+
+        let output_path: PathBuf = match args.get_one::<String>("output") {
+            Some(path) => path.into(),
+            None => input_path.with_extension("ico"),
+        };
+
         Config {
-            optimize: args.get_flag("opt"),
+            input_paths: vec![input_path],
+            output_path,
             force: args.get_flag("force"),
-            source_path: args.get_one::<String>("source").unwrap().into(),
-            target_path: args.get_one::<String>("target").unwrap().into(),
+            optimize: args.get_flag("optimize"),
         }
     }
 }

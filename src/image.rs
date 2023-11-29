@@ -27,7 +27,7 @@ impl Image {
     pub fn new(path: &PathBuf) -> Result<Image, String> {
         if !path.is_file() {
             return Err(format!(
-                "Source PNG file '{}' does not exist.",
+                "PNG input file '{}' does not exist.",
                 path.display()
             ));
         }
