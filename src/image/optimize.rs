@@ -7,7 +7,7 @@ use oxipng::{Options, StripChunks};
 impl Image {
     /// Create an optimized copy of the image.
     pub fn optimize(&self) -> Image {
-        let options = get_options();
+        let options = build_options();
 
         match oxipng::optimize_from_memory(self.data.as_slice(), &options) {
             Ok(data) => Image::from_data(data).unwrap(),
@@ -19,8 +19,8 @@ impl Image {
     }
 }
 
-/// Get optimization options.
-fn get_options() -> Options {
+/// Build oxipng optimization options.
+fn build_options() -> Options {
     let mut options = Options::max_compression();
     options.optimize_alpha = true;
     options.strip = StripChunks::All;

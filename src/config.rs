@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
-use clap::{arg, command, ArgMatches};
+use clap::{arg, command};
 
 /// Configuration data for Pico.
 pub struct Config {
     /// Whether to optimize the source PNG file.
     pub optimize: bool,
 
-    /// The path to the source PNG file to read.
+    /// The path to the source PNG file.
     pub source_path: PathBuf,
 }
 
@@ -15,18 +15,13 @@ impl Config {
     /// Create a new config using command line arguments.
     pub fn new() -> Config {
         let args = command!()
-            .arg(arg!(-o --optimize "Optimize the source PNG file"))
-            .arg(arg!(<source> "The source PNG file to read"))
+            .arg(arg!(-o --opt "Optimize the source PNG file"))
+            .arg(arg!(<source> "The source PNG file"))
             .get_matches();
 
         Config {
-            optimize: args.get_flag("optimize"),
-            source_path: get_arg_path(&args, "source"),
+            optimize: args.get_flag("opt"),
+            source_path: args.get_one::<String>("source").unwrap().into(),
         }
     }
-}
-
-/// Get a path from parsed arguments by its ID.
-fn get_arg_path(args: &ArgMatches, id: &str) -> PathBuf {
-    args.get_one::<String>(id).unwrap().into()
 }
