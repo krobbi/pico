@@ -2,6 +2,7 @@ mod config;
 mod image;
 mod serialize;
 
+use std::fs;
 use std::process;
 
 use config::Config;
@@ -24,7 +25,10 @@ fn main() {
     }
 
     let data = serialize::serialize_ico(&vec![image]);
-    println!("ICO Size: {}", data.len());
+
+    if let Err(error) = fs::write(config.target_path, data.as_slice()) {
+        bail(&error.to_string());
+    }
 }
 
 /// Exit with an error message.
