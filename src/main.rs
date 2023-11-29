@@ -27,7 +27,7 @@ fn main() {
     }
 }
 
-/// Read a vector of images from configuration data or bail.
+/// Read a vector of images using configuration data or bail.
 fn read_images(config: &Config) -> Vec<Image> {
     let mut images = Vec::with_capacity(config.input_paths.len());
 
@@ -38,7 +38,7 @@ fn read_images(config: &Config) -> Vec<Image> {
     images
 }
 
-/// Read an image from a path and optimization status or bail.
+/// Read an image using a path and optimization status or bail.
 fn read_image(path: &PathBuf, optimize: bool) -> Image {
     let image = match Image::new(path) {
         Ok(image) => image,

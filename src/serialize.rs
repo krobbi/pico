@@ -30,7 +30,7 @@ impl Serialize for Vec<u8> {
     }
 }
 
-/// Serialize ICO data from a vector of images.
+/// Serialize ICO data using a vector of images.
 pub fn serialize_ico(images: &Vec<Image>) -> Vec<u8> {
     let mut ico = Vec::new();
 
