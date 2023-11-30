@@ -89,4 +89,4 @@ Pico is made possible with the following fantastic libraries:
 Pico is released under the MIT License:  
 https://krobbi.github.io/license/2023/mit.txt
 
-See [license.txt](/license.txt) for a full copy of the license text.
+See [LICENSE.txt](./LICENSE.txt) for a full copy of the license text.
