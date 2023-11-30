@@ -1,9 +1,29 @@
 [package]
 name = "pico"
 version = "1.0.0"
+authors = ["Chris Roberts"]
 edition = "2021"
+description = "A PNG to ICO packer written in Rust."
+repository = "https://github.com/krobbi/pico/"
+license = "MIT"
+keywords = ["converter", "ico", "png"]
+categories = [
+  "command-line-utilities",
+  "compression",
+  "filesystem",
+  "multimedia::encoding",
+  "multimedia::images",
+]
+publish = false
 
 [dependencies]
 clap = { version = "4.4.10", features = ["cargo", "deprecated"] }
 oxipng = "9.0.0"
 png = "0.17.10"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = 3
+panic = "abort"
+strip = "symbols"
