@@ -2,9 +2,7 @@ mod config;
 mod image;
 mod serialize;
 
-use std::fs;
-use std::path::PathBuf;
-use std::process;
+use std::{fs, path::PathBuf, process};
 
 use config::Config;
 use image::Image;
