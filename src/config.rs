@@ -5,7 +5,13 @@ use clap::{arg, command};
 /// An optimization level for PNG data.
 pub enum OptLevel {
     /// Maximum oxipng level with alpha optimization and chunk stripping.
-    Optimized,
+    Low,
+
+    /// Same as low, but with Zopfli compression and fast evaluation.
+    Medium,
+
+    /// Same as medium, but without fast evaluation.
+    High,
 }
 
 /// Configuration data for Pico.
@@ -30,7 +36,7 @@ impl Config {
             .arg(arg!(<input>... "One or more PNG input files"))
             .arg(arg!(-o --output <path> "ICO output file"))
             .arg(arg!(-f --force "Overwrite existing ICO output file"))
-            .arg(arg!(-z --optimize ... "Optimize PNG input"))
+            .arg(arg!(-z --optimize ... "PNG optimization level"))
             .get_matches();
 
         let input_paths: Vec<PathBuf> = args
@@ -50,8 +56,9 @@ impl Config {
             force: args.get_flag("force"),
             opt_level: match args.get_one::<u8>("optimize").unwrap() {
                 0 => None,
-                1 => Some(OptLevel::Optimized),
-                _ => Some(OptLevel::Optimized),
+                1 => Some(OptLevel::Low),
+                2 => Some(OptLevel::Medium),
+                _ => Some(OptLevel::High),
             },
         }
     }

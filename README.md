@@ -6,6 +6,7 @@ __Copyright &copy; 2023 Chris Roberts__ (Krobbizoid).
 1. [Usage](#usage)
    * [Arguments](#arguments)
    * [Options](#options)
+      * [Optimize Flag](#optimize-flag)
    * [Examples](#examples)
 2. [Libraries](#libraries)
 3. [License](#license)
@@ -36,7 +37,7 @@ ICO output file.
 | :---- | :----------- | :-------- | :--------------------------------- |
 | `-o`  | `--output`   | `<path>`  | ICO output file                    |
 | `-f`  | `--force`    | _(None)_  | Overwrite existing ICO output file |
-| `-z`  | `--optimize` | `...`     | Optimize PNG input                 |
+| `-z`  | `--optimize` | `...`     | PNG optimization level             |
 | `-h`  | `--help`     | _(None)_  | Print help                         |
 | `-V`  | `--version`  | _(None)_  | Print version                      |
 
@@ -46,11 +47,24 @@ the same as the first input path, but with a `.ico` file extension.
 Pico will fail if a file already exists at the output path, unless the
 `--force` flag is set.
 
-If the `--optimize` flag is set, all PNG input will be optimized to take up
-less space in the output file, the input files will not be modified.
-
 If the `--help` or `--version` flags are set, Pico will print information but
 not perform any action.
+
+### Optimize Flag
+If the `--optimize` flag is set, all PNG input will be optimized to take up
+less space in the output file. The input files will not be modified.
+
+The more times the flag appears, the higher the optimization level will be:
+| Count | Example  | Level  | Equivalent oxipng options                       |
+| :---- | :------- | :----- | :---------------------------------------------- |
+| 0     | _(None)_ | None   | _(None)_                                        |
+| 1     | `-z`     | Low    | `--opt max --strip all --alpha`                 |
+| 2     | `-zz`    | Medium | `--opt max --strip all --alpha --fast --zopfli` |
+| 3+    | `-zzz`   | High   | `--opt max --strip all --alpha --zopfli`        |
+
+The highest optimization level may be unreasonably slow for larger images.
+Higher optimization levels do not guarantee a smaller or equal output size to
+lower optimization levels.
 
 ## Examples
 Pack `icon.png` into `icon.ico`:
@@ -63,9 +77,19 @@ Pack `input.png` into `output.ico`:
 pico input.png -o output.ico
 ```
 
-Pack `big.png` into `small.ico` with compression:
+Pack `big.png` into `micro.ico` with compression:
 ```shell
-pico big.png -z -o small.ico
+pico big.png -z -o micro.ico
+```
+
+Pack `big.png` into `nano.ico` with increased compression:
+```shell
+pico big.png -zz -o nano.ico
+```
+
+Pack `big.png` into `pico.ico` with maximum compression:
+```shell
+pico big.png -zzz -o pico.ico
 ```
 
 Pack `foo.png` and `bar.png` into `foo.ico`:
@@ -73,10 +97,10 @@ Pack `foo.png` and `bar.png` into `foo.ico`:
 pico foo.png bar.png
 ```
 
-Pack `icon_64x.png` and `icon_32x.png` into `icon.ico` with compression,
-overwriting an existing file:
+Pack `icon_64x.png` and `icon_32x.png` into `icon.ico` with maximum
+compression, overwriting an existing file:
 ```shell
-pico icon_64x.png icon_32x.png -z -o icon.ico -f
+pico icon_64x.png icon_32x.png -zzz -o icon.ico -f
 ```
 
 # Libraries

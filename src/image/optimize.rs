@@ -1,10 +1,12 @@
 extern crate oxipng;
 
+use std::num::NonZeroU8;
+
 use crate::config::OptLevel;
 
 use super::Image;
 
-use oxipng::{Options, StripChunks};
+use oxipng::Options;
 
 impl Image {
     /// Create an optimized copy of the image using a PNG optimization level.
@@ -21,14 +23,24 @@ impl Image {
 /// Build oxipng optimization options using a PNG optimization level.
 fn level_options(opt_level: &OptLevel) -> Options {
     match opt_level {
-        OptLevel::Optimized => default_options(),
+        OptLevel::Low => build_options(false, false),
+        OptLevel::Medium => build_options(true, true),
+        OptLevel::High => build_options(true, false),
     }
 }
 
-/// Build default oxipng optimization options.
-fn default_options() -> Options {
+/// Build oxipng optimization options from Zopfli and fast evaluation settings.
+fn build_options(zopfli: bool, fast: bool) -> Options {
     let mut options = Options::max_compression();
     options.optimize_alpha = true;
-    options.strip = StripChunks::All;
+    options.strip = oxipng::StripChunks::All;
+
+    if zopfli {
+        options.deflate = oxipng::Deflaters::Zopfli {
+            iterations: NonZeroU8::new(15).unwrap(),
+        }
+    }
+
+    options.fast_evaluation = fast;
     options
 }
