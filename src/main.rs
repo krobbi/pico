@@ -45,9 +45,9 @@ fn read_images(config: &Config) -> Result<Vec<Image>, String> {
 fn read_image(config: &Config, path: &PathBuf) -> Result<Image, String> {
     let image = Image::new(path)?;
 
-    match config.optimize {
-        true => image.optimize(),
-        false => Ok(image),
+    match config.opt_level {
+        Some(_) => image.optimize(),
+        None => Ok(image),
     }
 }
 

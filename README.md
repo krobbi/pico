@@ -36,7 +36,7 @@ ICO output file.
 | :---- | :----------- | :-------- | :--------------------------------- |
 | `-o`  | `--output`   | `<path>`  | ICO output file                    |
 | `-f`  | `--force`    | _(None)_  | Overwrite existing ICO output file |
-| `-z`  | `--optimize` | _(None)_  | Optimize PNG input                 |
+| `-z`  | `--optimize` | `...`     | Optimize PNG input                 |
 | `-h`  | `--help`     | _(None)_  | Print help                         |
 | `-V`  | `--version`  | _(None)_  | Print version                      |
 
