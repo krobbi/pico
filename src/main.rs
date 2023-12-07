@@ -18,38 +18,36 @@ fn main() {
         ));
     }
 
-    let data = serialize::serialize_ico(&read_images(&config));
+    let images = match read_images(&config) {
+        Ok(images) => images,
+        Err(message) => bail(&message),
+    };
+
+    let data = serialize::serialize_ico(&images);
 
     if let Err(error) = fs::write(config.output_path, data.as_slice()) {
         bail(&error.to_string());
     }
 }
 
-/// Read a vector of images using configuration data or bail.
-fn read_images(config: &Config) -> Vec<Image> {
+/// Read a vector of images using configuration data.
+fn read_images(config: &Config) -> Result<Vec<Image>, String> {
     let mut images = Vec::with_capacity(config.input_paths.len());
 
     for path in &config.input_paths {
-        images.push(read_image(path, config.optimize));
+        images.push(read_image(config, path)?);
     }
 
-    images
+    Ok(images)
 }
 
-/// Read an image using a path and optimization status or bail.
-fn read_image(path: &PathBuf, optimize: bool) -> Image {
-    let image = match Image::new(path) {
-        Ok(image) => image,
-        Err(message) => bail(&message),
-    };
+/// Read an image using configuration data and a path.
+fn read_image(config: &Config, path: &PathBuf) -> Result<Image, String> {
+    let image = Image::new(path)?;
 
-    if optimize {
-        match image.optimize() {
-            Ok(image) => image,
-            Err(message) => bail(&message),
-        }
-    } else {
-        image
+    match config.optimize {
+        true => image.optimize(),
+        false => Ok(image),
     }
 }
 
