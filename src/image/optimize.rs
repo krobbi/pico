@@ -21,6 +21,5 @@ fn build_options() -> Options {
     let mut options = Options::max_compression();
     options.optimize_alpha = true;
     options.strip = StripChunks::All;
-    options.fast_evaluation = false;
     options
 }
