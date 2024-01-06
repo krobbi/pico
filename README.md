@@ -6,9 +6,8 @@ __Copyright &copy; 2023-2024 Chris Roberts__ (Krobbizoid).
 1. [Usage](#usage)
    * [Arguments](#arguments)
    * [Options](#options)
-      * [Optimize Flag](#optimize-flag)
    * [Examples](#examples)
-2. [Libraries](#libraries)
+2. [Dependencies](#Dependencies)
 3. [License](#license)
 
 # Usage
@@ -37,7 +36,6 @@ ICO output file.
 | :---- | :----------- | :-------- | :--------------------------------- |
 | `-o`  | `--output`   | `<path>`  | ICO output file                    |
 | `-f`  | `--force`    | _(None)_  | Overwrite existing ICO output file |
-| `-z`  | `--optimize` | `...`     | PNG optimization level             |
 | `-h`  | `--help`     | _(None)_  | Print help                         |
 | `-V`  | `--version`  | _(None)_  | Print version                      |
 
@@ -50,22 +48,6 @@ Pico will fail if a file already exists at the output path, unless the
 If the `--help` or `--version` flags are set, Pico will print information but
 not perform any action.
 
-### Optimize Flag
-If the `--optimize` flag is set, all PNG input will be optimized to take up
-less space in the output file. The input files will not be modified.
-
-The more times the flag appears, the higher the optimization level will be:
-| Count | Example  | Level  | Equivalent oxipng options                       |
-| :---- | :------- | :----- | :---------------------------------------------- |
-| 0     | _(None)_ | None   | _(None)_                                        |
-| 1     | `-z`     | Low    | `--opt max --strip all --alpha`                 |
-| 2     | `-zz`    | Medium | `--opt max --strip all --alpha --fast --zopfli` |
-| 3+    | `-zzz`   | High   | `--opt max --strip all --alpha --zopfli`        |
-
-The highest optimization level may be unreasonably slow for larger images.
-Higher optimization levels do not guarantee a smaller or equal output size to
-lower optimization levels.
-
 ## Examples
 Pack `icon.png` into `icon.ico`:
 ```shell
@@ -77,36 +59,20 @@ Pack `input.png` into `output.ico`:
 pico input.png -o output.ico
 ```
 
-Pack `big.png` into `micro.ico` with compression:
-```shell
-pico big.png -z -o micro.ico
-```
-
-Pack `big.png` into `nano.ico` with increased compression:
-```shell
-pico big.png -zz -o nano.ico
-```
-
-Pack `big.png` into `pico.ico` with maximum compression:
-```shell
-pico big.png -zzz -o pico.ico
-```
-
 Pack `foo.png` and `bar.png` into `foo.ico`:
 ```shell
 pico foo.png bar.png
 ```
 
-Pack `icon_64x.png` and `icon_32x.png` into `icon.ico` with maximum
-compression, overwriting an existing file:
+Pack `icon_64x.png` and `icon_32x.png` into `icon.ico`, overwriting an existing
+file:
 ```shell
-pico icon_64x.png icon_32x.png -zzz -o icon.ico -f
+pico icon_64x.png icon_32x.png -o icon.ico -f
 ```
 
-# Libraries
-Pico is made possible with the following fantastic libraries:
+# Dependencies
+Pico uses the following libraries:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing.
-* [oxipng](https://crates.io/crates/oxipng) - PNG optimization.
 * [png](https://crates.io/crates/png) - PNG parsing and validation.
 
 # License

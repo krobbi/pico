@@ -1,5 +1,3 @@
-mod optimize;
-
 use std::{fs, path::PathBuf};
 
 use png;

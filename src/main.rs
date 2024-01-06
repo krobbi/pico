@@ -18,7 +18,7 @@ fn main() {
         ));
     }
 
-    let images = match read_images(&config) {
+    let images = match read_images(&config.input_paths) {
         Ok(images) => images,
         Err(message) => bail(&message),
     };
@@ -30,25 +30,15 @@ fn main() {
     }
 }
 
-/// Read a vector of images using configuration data.
-fn read_images(config: &Config) -> Result<Vec<Image>, String> {
-    let mut images = Vec::with_capacity(config.input_paths.len());
+/// Read a vector of images using a vector of paths.
+fn read_images(paths: &Vec<PathBuf>) -> Result<Vec<Image>, String> {
+    let mut images = Vec::with_capacity(paths.len());
 
-    for path in &config.input_paths {
-        images.push(read_image(config, path)?);
+    for path in paths {
+        images.push(Image::new(path)?);
     }
 
     Ok(images)
-}
-
-/// Read an image using configuration data and a path.
-fn read_image(config: &Config, path: &PathBuf) -> Result<Image, String> {
-    let image = Image::new(path)?;
-
-    match &config.opt_level {
-        Some(opt_level) => image.optimize(opt_level),
-        None => Ok(image),
-    }
 }
 
 /// Exit with an error message.

@@ -2,18 +2,6 @@ use std::path::PathBuf;
 
 use clap::{arg, command};
 
-/// An optimization level for PNG data.
-pub enum OptLevel {
-    /// Maximum oxipng level with alpha optimization and chunk stripping.
-    Low,
-
-    /// Same as low, but with Zopfli compression and fast evaluation.
-    Medium,
-
-    /// Same as medium, but without fast evaluation.
-    High,
-}
-
 /// Configuration data for Pico.
 pub struct Config {
     /// The paths to the PNG input files.
@@ -24,9 +12,6 @@ pub struct Config {
 
     /// Whether to overwrite an existing ICO output file.
     pub force: bool,
-
-    /// The PNG optimization level to use, if applicable.
-    pub opt_level: Option<OptLevel>,
 }
 
 impl Config {
@@ -36,7 +21,6 @@ impl Config {
             .arg(arg!(<input>... "One or more PNG input files"))
             .arg(arg!(-o --output <path> "ICO output file"))
             .arg(arg!(-f --force "Overwrite existing ICO output file"))
-            .arg(arg!(-z --optimize ... "PNG optimization level"))
             .get_matches();
 
         let input_paths: Vec<PathBuf> = args
@@ -54,12 +38,6 @@ impl Config {
             input_paths,
             output_path,
             force: args.get_flag("force"),
-            opt_level: match args.get_one::<u8>("optimize").unwrap() {
-                0 => None,
-                1 => Some(OptLevel::Low),
-                2 => Some(OptLevel::Medium),
-                _ => Some(OptLevel::High),
-            },
         }
     }
 }
