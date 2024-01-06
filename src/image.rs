@@ -1,7 +1,5 @@
 use std::{fs, path::PathBuf};
 
-use png;
-
 use crate::error::Error;
 
 /// PNG image data.
