@@ -2,6 +2,8 @@ use std::{fs, path::PathBuf};
 
 use png;
 
+use crate::error::Error;
+
 /// PNG image data.
 pub struct Image {
     /// The image's width in pixels.
@@ -22,29 +24,24 @@ pub struct Image {
 
 impl Image {
     /// Create a new image using a path.
-    pub fn new(path: &PathBuf) -> Result<Image, String> {
+    pub fn new(path: &PathBuf) -> Result<Image, Error> {
         if !path.is_file() {
-            return Err(format!(
-                "PNG input file '{}' does not exist.",
-                path.display()
-            ));
+            return Err(Error::InputMissing(path.clone()));
         }
 
-        let data = match fs::read(path) {
-            Ok(data) => data,
-            Err(error) => return Err(error.to_string()),
-        };
-
-        Image::from_data(data)
+        match fs::read(path) {
+            Ok(data) => Image::from_data(data),
+            Err(error) => Err(Error::IO(error)),
+        }
     }
 
     /// Create a new image from data.
-    fn from_data(data: Vec<u8>) -> Result<Image, String> {
+    fn from_data(data: Vec<u8>) -> Result<Image, Error> {
         let decoder = png::Decoder::new(data.as_slice());
 
         let reader = match decoder.read_info() {
             Ok(reader) => reader,
-            Err(error) => return Err(error.to_string()),
+            Err(error) => return Err(Error::Message(error.to_string())),
         };
 
         let info = reader.info();
