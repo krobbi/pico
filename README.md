@@ -1,6 +1,6 @@
 # Pico
 _A PNG to ICO packer written in Rust._  
-__Copyright &copy; 2023 Chris Roberts__ (Krobbizoid).
+__Copyright &copy; 2023-2024 Chris Roberts__ (Krobbizoid).
 
 # Contents
 1. [Usage](#usage)
@@ -111,6 +111,6 @@ Pico is made possible with the following fantastic libraries:
 
 # License
 Pico is released under the MIT License:  
-https://krobbi.github.io/license/2023/mit.txt
+https://krobbi.github.io/license/2023/2024/mit.txt
 
 See [LICENSE.txt](./LICENSE.txt) for a full copy of the license text.
