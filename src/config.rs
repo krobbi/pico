@@ -29,7 +29,7 @@ impl Config {
             .map(PathBuf::from)
             .collect();
 
-        let output_path: PathBuf = match args.get_one::<String>("output") {
+        let output_path = match args.get_one::<String>("output") {
             Some(path) => PathBuf::from(path),
             None => input_paths[0].with_extension("ico"),
         };
