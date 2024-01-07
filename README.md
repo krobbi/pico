@@ -58,6 +58,11 @@ Pack `icon.png` into `icon.ico`:
 pico icon.png
 ```
 
+Pack all PNG images in `icons/` into `icons.ico`:
+```shell
+pico icons/
+```
+
 Pack `input.png` into `output.ico`:
 ```shell
 pico input.png -o output.ico
@@ -72,6 +77,12 @@ Pack `icon_64x.png` and `icon_32x.png` into `icon.ico`, overwriting an existing
 file:
 ```shell
 pico icon_64x.png icon_32x.png -o icon.ico -f
+```
+
+Pack `icon.png` and all PNG images in `icons/` into `icon.ico`, overwriting an
+existing file:
+```shell
+pico icon.png icons/ -o icon.ico -f
 ```
 
 # Dependencies
