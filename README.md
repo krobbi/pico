@@ -39,12 +39,16 @@ files is system-dependent. Subdirectories will not be searched.
 | Short | Long         | Arguments | Usage                              |
 | :---- | :----------- | :-------- | :--------------------------------- |
 | `-o`  | `--output`   | `<path>`  | ICO output file                    |
+| `-s`  | `--sort`     | _(None)_  | Sort ICO entries by resolution     |
 | `-f`  | `--force`    | _(None)_  | Overwrite existing ICO output file |
 | `-h`  | `--help`     | _(None)_  | Print help                         |
 | `-V`  | `--version`  | _(None)_  | Print version                      |
 
 If the `--output` option is not set, the path to the ICO output file will be
 the same as the first input path, but with a `.ico` file extension.
+
+If the `--sort` flag is set, Pico will sort entries in the ICO output file by
+resolution from largest to smallest.
 
 Pico will fail if a file already exists at the output path, unless the
 `--force` flag is set.
@@ -79,10 +83,10 @@ file:
 pico icon_64x.png icon_32x.png -o icon.ico -f
 ```
 
-Pack `icon.png` and all PNG images in `icons/` into `icon.ico`, overwriting an
-existing file:
+Pack `icon_32x.png` and all PNG images in `icons/` into `icon.ico`, sorting
+icon entries by descending resolution, and overwriting an existing file:
 ```shell
-pico icon.png icons/ -o icon.ico -f
+pico icon_32x.png icons/ -s -o icon.ico -f
 ```
 
 # Dependencies

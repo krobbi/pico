@@ -10,13 +10,13 @@ pub struct Icon {
 
 impl Icon {
     /// Create a new icon from a vector of images.
-    pub fn from_images(images: Vec<Image>) -> Icon {
+    pub fn from_images(images: Vec<Image>, sort: bool) -> Icon {
         let mut icon = Icon {
             images: Vec::with_capacity(images.len()),
         };
 
         for image in images {
-            icon.insert_image(image);
+            icon.insert_image(image, sort);
         }
 
         icon
@@ -29,7 +29,17 @@ impl Icon {
     }
 
     /// Insert an image into the icon.
-    fn insert_image(&mut self, image: Image) {
-        self.images.push(image);
+    fn insert_image(&mut self, image: Image, sort: bool) {
+        let mut index = self.images.len();
+
+        if sort {
+            let resolution = image.resolution();
+
+            while index > 0 && resolution > self.images[index - 1].resolution() {
+                index -= 1;
+            }
+        }
+
+        self.images.insert(index, image);
     }
 }

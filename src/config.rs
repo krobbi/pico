@@ -10,6 +10,9 @@ pub struct Config {
     /// The path to the ICO output file.
     pub output_path: PathBuf,
 
+    /// Whether to sort ICO entries by descending resolution.
+    pub sort: bool,
+
     /// Whether to overwrite an existing ICO output file.
     pub force: bool,
 }
@@ -20,6 +23,7 @@ impl Config {
         let args = command!()
             .arg(arg!(<input>... "One or more PNG input files or directories"))
             .arg(arg!(-o --output <path> "ICO output file"))
+            .arg(arg!(-s --sort "Sort ICO entries by resolution"))
             .arg(arg!(-f --force "Overwrite existing ICO output file"))
             .get_matches();
 
@@ -37,6 +41,7 @@ impl Config {
         Config {
             input_paths,
             output_path,
+            sort: args.get_flag("sort"),
             force: args.get_flag("force"),
         }
     }

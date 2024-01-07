@@ -33,6 +33,11 @@ impl Image {
         }
     }
 
+    /// Get the image's resolution in pixels.
+    pub fn resolution(&self) -> u64 {
+        self.width as u64 * self.height as u64
+    }
+
     /// Create a new image from data.
     fn from_data(data: Vec<u8>) -> Result<Image, Error> {
         let decoder = png::Decoder::new(data.as_slice());
