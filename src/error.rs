@@ -9,6 +9,9 @@ pub enum Error {
     /// An error caused by an IO error.
     IO(io::Error),
 
+    /// An error caused by having no valid input paths.
+    NoInputs,
+
     /// An error caused by a PNG input file not existing.
     InputMissing(PathBuf),
 
@@ -24,6 +27,7 @@ impl fmt::Display for Error {
         match self {
             Error::Message(message) => message.fmt(f),
             Error::IO(error) => error.fmt(f),
+            Error::NoInputs => write!(f, "No PNG input files were found."),
             Error::InputMissing(path) => {
                 write!(f, "PNG input file '{}' does not exist.", path.display())
             }

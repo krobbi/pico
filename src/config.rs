@@ -4,7 +4,7 @@ use clap::{arg, command};
 
 /// Configuration data for Pico.
 pub struct Config {
-    /// The paths to the PNG input files.
+    /// The paths to the PNG input files and directories.
     pub input_paths: Vec<PathBuf>,
 
     /// The path to the ICO output file.
@@ -18,7 +18,7 @@ impl Config {
     /// Create a new config using command line arguments.
     pub fn new() -> Config {
         let args = command!()
-            .arg(arg!(<input>... "One or more PNG input files"))
+            .arg(arg!(<input>... "One or more PNG input files or directories"))
             .arg(arg!(-o --output <path> "ICO output file"))
             .arg(arg!(-f --force "Overwrite existing ICO output file"))
             .get_matches();

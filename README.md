@@ -23,13 +23,17 @@ pico [OPTIONS] <input>...
 ```
 
 ## Arguments
-| Argument     | Usage                       |
-| :----------- | :-------------------------- |
-| `<input>...` | One or more PNG input files |
+| Argument     | Usage                                      |
+| :----------- | :----------------------------------------- |
+| `<input>...` | One or more PNG input files or directories |
 
 Pico must be given one or more unnamed arguments representing paths to PNG
-input files. The order of the arguments matches the order of the data in the
-ICO output file.
+input. The order of the arguments matches the order of the data in the ICO
+output file.
+
+If a directory path is given, it will be expanded to every file in that
+directory with a `.png` file extension (case-insensitive). The order of the
+files is system-dependent. Subdirectories will not be searched.
 
 ## Options
 | Short | Long         | Arguments | Usage                              |

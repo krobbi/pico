@@ -23,7 +23,8 @@ fn run_pico(config: &Config) -> Result<(), Error> {
         return Err(Error::OutputExists(config.output_path.clone()));
     }
 
-    let images = read_images(&config.input_paths)?;
+    let paths = expand_paths(&config.input_paths)?;
+    let images = read_images(&paths)?;
     let data = serialize::serialize_ico(&images);
 
     match fs::write(&config.output_path, data.as_slice()) {
@@ -32,7 +33,50 @@ fn run_pico(config: &Config) -> Result<(), Error> {
     }
 }
 
-/// Read a vector of images using a vector of paths.
+/// Expand a vector of paths to PNG files and directories to a vector of paths
+/// to PNG files.
+fn expand_paths(paths: &Vec<PathBuf>) -> Result<Vec<PathBuf>, Error> {
+    let mut expanded = Vec::new();
+
+    for path in paths {
+        if path.is_dir() {
+            expanded.append(&mut expand_dir(path)?);
+        } else {
+            expanded.push(path.clone());
+        }
+    }
+
+    if expanded.is_empty() {
+        Err(Error::NoInputs)
+    } else {
+        Ok(expanded)
+    }
+}
+
+/// Expand a directory path to a vector of paths to PNG files.
+fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>, Error> {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(error) => return Err(Error::IO(error)),
+    };
+
+    let mut paths = Vec::new();
+
+    for entry in entries {
+        let path = match entry {
+            Ok(entry) => entry.path(),
+            Err(error) => return Err(Error::IO(error)),
+        };
+
+        if path.is_file() && path.extension().unwrap_or_default().to_ascii_lowercase() == "png" {
+            paths.push(path);
+        }
+    }
+
+    Ok(paths)
+}
+
+/// Read a vector of images using a vector of paths to PNG input files.
 fn read_images(paths: &Vec<PathBuf>) -> Result<Vec<Image>, Error> {
     let mut images = Vec::with_capacity(paths.len());
 
