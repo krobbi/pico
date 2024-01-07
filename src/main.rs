@@ -25,7 +25,7 @@ fn run_pico(config: &Config) -> Result<(), Error> {
     }
 
     let paths = expand_paths(&config.input_paths)?;
-    let images = read_images(&paths)?;
+    let images = read_images(paths)?;
     let data = Icon::from_images(images, config.sort).serialize();
     fs::write(&config.output_path, data.as_slice())?;
     Ok(())
@@ -67,11 +67,11 @@ fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>, Error> {
 }
 
 /// Read a vector of images using a vector of paths to PNG input files.
-fn read_images(paths: &Vec<PathBuf>) -> Result<Vec<Image>, Error> {
+fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>, Error> {
     let mut images = Vec::with_capacity(paths.len());
 
     for path in paths {
-        images.push(Image::new(path)?);
+        images.push(Image::from_path(path)?);
     }
 
     Ok(images)

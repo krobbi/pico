@@ -21,27 +21,16 @@ pub struct Image {
 }
 
 impl Image {
-    /// Create a new image using a path.
-    pub fn new(path: &PathBuf) -> Result<Image, Error> {
+    /// Create a new image from a path.
+    pub fn from_path(path: PathBuf) -> Result<Image, Error> {
         if !path.is_file() {
-            return Err(Error::InputMissing(path.clone()));
+            return Err(Error::InputMissing(path));
         }
 
-        Image::from_data(fs::read(path)?)
-    }
+        let data = fs::read(&path)?;
 
-    /// Get the image's resolution in pixels.
-    pub fn resolution(&self) -> u64 {
-        self.width as u64 * self.height as u64
-    }
-
-    /// Create a new image from data.
-    fn from_data(data: Vec<u8>) -> Result<Image, Error> {
-        let decoder = png::Decoder::new(data.as_slice());
-
-        let reader = match decoder.read_info() {
-            Ok(reader) => reader,
-            Err(error) => return Err(Error::Message(error.to_string())),
+        let Ok(reader) = png::Decoder::new(data.as_slice()).read_info() else {
+            return Err(Error::DecodeFailed(path));
         };
 
         let info = reader.info();
@@ -49,12 +38,17 @@ impl Image {
         Ok(Image {
             width: info.width,
             height: info.height,
-            palette_size: match &info.palette {
-                Some(palette) => Some(palette.len() as u16 / 3),
-                None => None,
-            },
+            palette_size: info
+                .palette
+                .as_ref()
+                .map(|palette| palette.len() as u16 / 3),
             bits_per_pixel: info.bits_per_pixel() as u8,
             data,
         })
+    }
+
+    /// Get the image's resolution in pixels.
+    pub fn resolution(&self) -> u64 {
+        self.width as u64 * self.height as u64
     }
 }
