@@ -27,10 +27,7 @@ impl Image {
             return Err(Error::InputMissing(path.clone()));
         }
 
-        match fs::read(path) {
-            Ok(data) => Image::from_data(data),
-            Err(error) => Err(Error::IO(error)),
-        }
+        Image::from_data(fs::read(path)?)
     }
 
     /// Get the image's resolution in pixels.

@@ -27,11 +27,8 @@ fn run_pico(config: &Config) -> Result<(), Error> {
     let paths = expand_paths(&config.input_paths)?;
     let images = read_images(&paths)?;
     let data = Icon::from_images(images, config.sort).serialize();
-
-    match fs::write(&config.output_path, data.as_slice()) {
-        Ok(_) => Ok(()),
-        Err(error) => Err(Error::IO(error)),
-    }
+    fs::write(&config.output_path, data.as_slice())?;
+    Ok(())
 }
 
 /// Expand a vector of paths to PNG files and directories to a vector of paths
@@ -56,18 +53,10 @@ fn expand_paths(paths: &Vec<PathBuf>) -> Result<Vec<PathBuf>, Error> {
 
 /// Expand a directory path to a vector of paths to PNG files.
 fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>, Error> {
-    let entries = match fs::read_dir(dir) {
-        Ok(entries) => entries,
-        Err(error) => return Err(Error::IO(error)),
-    };
-
     let mut paths = Vec::new();
 
-    for entry in entries {
-        let path = match entry {
-            Ok(entry) => entry.path(),
-            Err(error) => return Err(Error::IO(error)),
-        };
+    for entry in fs::read_dir(dir)? {
+        let path = entry?.path();
 
         if path.is_file() && path.extension().unwrap_or_default().to_ascii_lowercase() == "png" {
             paths.push(path);

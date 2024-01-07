@@ -39,3 +39,9 @@ impl fmt::Display for Error {
         }
     }
 }
+
+impl From<io::Error> for Error {
+    fn from(error: io::Error) -> Error {
+        Error::IO(error)
+    }
+}
