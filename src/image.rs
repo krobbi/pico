@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use crate::error::Error;
 
-/// PNG image data.
+/// A PNG image.
 pub struct Image {
     /// The image's width in pixels.
     pub width: u32,

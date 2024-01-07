@@ -1,12 +1,13 @@
 mod config;
 mod error;
+mod icon;
 mod image;
-mod serialize;
 
 use std::{fs, path::PathBuf, process};
 
 use config::Config;
 use error::Error;
+use icon::Icon;
 use image::Image;
 
 /// Run Pico using command line arguments and exit on error.
@@ -24,8 +25,8 @@ fn run_pico(config: &Config) -> Result<(), Error> {
     }
 
     let paths = expand_paths(&config.input_paths)?;
-    let images = read_images(&paths)?;
-    let data = serialize::serialize_ico(&images);
+    let images: Vec<Image> = read_images(&paths)?;
+    let data = Icon::from_images(images).serialize();
 
     match fs::write(&config.output_path, data.as_slice()) {
         Ok(_) => Ok(()),
