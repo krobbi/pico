@@ -26,7 +26,7 @@ fn run_pico(config: &Config) -> Result<(), Error> {
 
     let paths = expand_paths(&config.input_paths)?;
     let images = read_images(paths)?;
-    let data = Icon::from_images(images, config.sort).serialize();
+    let data = Icon::from_images(images, config.sort).encode()?;
     fs::write(&config.output_path, data.as_slice())?;
     Ok(())
 }

@@ -18,6 +18,9 @@ pub enum Error {
 
     /// An error caused by a PNG input file failing to be decoded.
     DecodeFailed(PathBuf),
+
+    /// An error caused by the ICO output file failing to be encoded.
+    EncodeFailed,
 }
 
 impl error::Error for Error {}
@@ -40,6 +43,7 @@ impl fmt::Display for Error {
                 "PNG input file '{}' could not be decoded.",
                 path.display()
             ),
+            Error::EncodeFailed => write!(f, "ICO output file could not be encoded."),
         }
     }
 }
