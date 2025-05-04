@@ -1,22 +1,10 @@
 # Pico
-_A PNG to ICO packer written in Rust._  
-__Copyright &copy; 2023-2024 Chris Roberts__ (Krobbizoid).
-
-# Contents
-1. [Usage](#usage)
-   * [Arguments](#arguments)
-   * [Options](#options)
-   * [Examples](#examples)
-2. [Dependencies](#Dependencies)
-3. [License](#license)
-
-# Usage
-Pico aims to convert PNG images to ICO icons by packing the PNG data directly
-into the output file. This feature has been supported since Windows Vista and
-typically results in smaller ICO files.
+Pico converts PNG images to ICO icons by packing the PNG data directly into the
+ICO file. This feature has been supported since Windows Vista and typically
+results in smaller ICO files.
 
 Build Pico with `cargo build --release` and move the executable from
-`target/release/pico(.exe)` to a directory with environment access. After this
+`target/release/pico(.exe)` to a directory with environment access. After this,
 you can use Pico from the command line:
 ```shell
 pico [OPTIONS] <input>...
@@ -27,13 +15,14 @@ pico [OPTIONS] <input>...
 | :----------- | :----------------------------------------- |
 | `<input>...` | One or more PNG input files or directories |
 
-Pico must be given one or more unnamed arguments representing paths to PNG
-input. The order of the arguments matches the order of the data in the ICO
-output file.
+Pico must be given one or more unnamed arguments containing paths to PNG input
+files. The order of the paths is 'stable' and will match the order of the data
+in the ICO output file.
 
-If a directory path is given, it will be expanded to every file in that
-directory with a `.png` file extension (case-insensitive). The order of the
-files is system-dependent. Subdirectories will not be searched.
+If a directory path is given, then it will be expanded into every file path in
+the directory with a `.png` file extension (case-insensitive.) The ordering of
+the file paths is system-dependent and may not be deterministic. Subdirectories
+will not be searched.
 
 ## Options
 | Short | Long         | Arguments | Usage                              |
@@ -44,17 +33,17 @@ files is system-dependent. Subdirectories will not be searched.
 | `-h`  | `--help`     | _(None)_  | Print help                         |
 | `-V`  | `--version`  | _(None)_  | Print version                      |
 
-If the `--output` option is not set, the path to the ICO output file will be
-the same as the first input path, but with a `.ico` file extension.
+If the `--output` option is not set, then the path to the ICO output file will
+be the same as the first PNG input file path, but with a `.ico` file extension.
 
-If the `--sort` flag is set, Pico will sort entries in the ICO output file by
-resolution from largest to smallest.
+If the `--sort` flag is set, then Pico will sort the entries in the ICO output
+file by resolution from largest to smallest.
 
-Pico will fail if a file already exists at the output path, unless the
+Pico will fail if a file already exists at the ICO output file path, unless the
 `--force` flag is set.
 
-If the `--help` or `--version` flags are set, Pico will print information but
-not perform any action.
+If the `--help` or `--version` flag is set, then Pico will print information
+but not perform any action.
 
 ## Examples
 Pack `icon.png` into `icon.ico`:
@@ -86,7 +75,7 @@ pico icon_64x.png icon_32x.png -o icon.ico -f
 Pack `icon_32x.png` and all PNG images in `icons/` into `icon.ico`, sorting
 icon entries by descending resolution, and overwriting an existing file:
 ```shell
-pico icon_32x.png icons/ -s -o icon.ico -f
+pico icon_32x.png icons/ -sf -o icon.ico
 ```
 
 # Dependencies
@@ -95,7 +84,5 @@ Pico uses the following libraries:
 * [png](https://crates.io/crates/png) - PNG parsing and validation.
 
 # License
-Pico is released under the MIT License:  
-https://krobbi.github.io/license/2023/2024/mit.txt
-
-See [LICENSE.txt](./LICENSE.txt) for a full copy of the license text.
+Pico is released under the MIT License. See [LICENSE.txt](./LICENSE.txt) for a
+full copy of the license text.
