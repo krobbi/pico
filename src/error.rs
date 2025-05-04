@@ -16,6 +16,9 @@ pub enum Error {
     /// An error caused by an I/O error.
     Io(io::Error),
 
+    /// An error raised by clap.
+    Clap(clap::Error),
+
     /// An error caused by the ICO output file already existing without using
     /// the '--force' flag.
     OutputExists(PathBuf),
@@ -37,6 +40,7 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(error) => Some(error),
+            Self::Clap(error) => Some(error),
             _ => None,
         }
     }
@@ -46,6 +50,7 @@ impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Io(error) => error.fmt(f),
+            Self::Clap(error) => error.fmt(f),
             Self::OutputExists(path) => write!(
                 f,
                 "ICO output file '{}' already exists, try '--force' to overwrite it",
@@ -67,18 +72,24 @@ impl Display for Error {
 
 impl Termination for Error {
     fn report(self) -> ExitCode {
-        // According to the standard library implementation of `Termination` for
-        // `Result`, this function should avoid panicking. This line is
-        // equivalent to `eprintln!("error: {self}");`, but any errors from
-        // writing to stderr are ignored.
-        let _ = writeln!(io::stderr(), "error: {self}");
-
-        ExitCode::FAILURE
+        if let Self::Clap(error) = self {
+            let _ = error.print();
+            ExitCode::from(u8::try_from(error.exit_code()).unwrap_or(1))
+        } else {
+            let _ = writeln!(io::stderr(), "error: {self}");
+            ExitCode::FAILURE
+        }
     }
 }
 
 impl From<io::Error> for Error {
     fn from(value: io::Error) -> Self {
         Self::Io(value)
+    }
+}
+
+impl From<clap::Error> for Error {
+    fn from(value: clap::Error) -> Self {
+        Self::Clap(value)
     }
 }

@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use clap::{arg, command};
+use clap::{arg, command, value_parser};
+
+use crate::error::Result;
 
 /// Configuration data for Pico.
 pub struct Config {
@@ -18,31 +20,41 @@ pub struct Config {
 }
 
 impl Config {
-    /// Create a new config using command line arguments.
-    pub fn new() -> Config {
-        let args = command!()
-            .arg(arg!(<input>... "One or more PNG input files or directories"))
-            .arg(arg!(-o --output <path> "ICO output file"))
+    /// Creates new configuration data from command line arguments.
+    pub fn new() -> Result<Self> {
+        let mut matches = command!()
+            .arg(
+                arg!(<input>... "One or more PNG input files or directories")
+                    .value_parser(value_parser!(PathBuf)),
+            )
+            .arg(
+                arg!(-o --output <path> "ICO output file")
+                    .required(false)
+                    .value_parser(value_parser!(PathBuf)),
+            )
             .arg(arg!(-s --sort "Sort ICO entries by resolution"))
             .arg(arg!(-f --force "Overwrite existing ICO output file"))
-            .get_matches();
+            .try_get_matches()?;
 
-        let input_paths: Vec<PathBuf> = args
-            .get_many::<String>("input")
-            .unwrap()
-            .map(PathBuf::from)
-            .collect();
+        let input_paths: Vec<PathBuf> = matches.remove_many("input").unwrap_or_default().collect();
+        assert!(
+            !input_paths.is_empty(),
+            "usage string guarantees that `input_paths` is not empty"
+        );
 
-        let output_path = match args.get_one::<String>("output") {
-            Some(path) => PathBuf::from(path),
-            None => input_paths[0].with_extension("ico"),
+        let output_path = match matches.remove_one("output") {
+            Some(path) => path,
+            None => input_paths
+                .first()
+                .expect("already asserted that `input_paths` is not empty")
+                .with_extension("ico"),
         };
 
-        Config {
+        Ok(Self {
             input_paths,
             output_path,
-            sort: args.get_flag("sort"),
-            force: args.get_flag("force"),
-        }
+            sort: matches.get_flag("sort"),
+            force: matches.get_flag("force"),
+        })
     }
 }
