@@ -3,23 +3,31 @@ mod error;
 mod icon;
 mod image;
 
-use std::{fs, path::PathBuf, process};
+use std::{
+    fs,
+    path::PathBuf,
+    process::{ExitCode, Termination},
+};
 
 use config::Config;
-use error::Error;
+use error::{Error, Result};
 use icon::Icon;
 use image::Image;
 
-/// Run Pico using command line arguments and exit on error.
-fn main() {
-    if let Err(error) = run_pico(&Config::new()) {
-        eprintln!("{}", error);
-        process::exit(1);
+/// Runs Pico and exits with an exit code.
+fn main() -> ExitCode {
+    // The result of `try_run()` could be returned instead, but this would cause
+    // errors to be displayed with user-unfriendly debug printing.
+    match try_run() {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(error) => error.report(),
     }
 }
 
-/// Run Pico using configuration data.
-fn run_pico(config: &Config) -> Result<(), Error> {
+/// Runs Pico and returns a result.
+fn try_run() -> Result<()> {
+    let config = Config::new();
+
     if config.output_path.is_file() && !config.force {
         return Err(Error::OutputExists(config.output_path.clone()));
     }
@@ -33,7 +41,7 @@ fn run_pico(config: &Config) -> Result<(), Error> {
 
 /// Expand a vector of paths to PNG files and directories to a vector of paths
 /// to PNG files.
-fn expand_paths(paths: &Vec<PathBuf>) -> Result<Vec<PathBuf>, Error> {
+fn expand_paths(paths: &Vec<PathBuf>) -> Result<Vec<PathBuf>> {
     let mut expanded = Vec::new();
 
     for path in paths {
@@ -52,7 +60,7 @@ fn expand_paths(paths: &Vec<PathBuf>) -> Result<Vec<PathBuf>, Error> {
 }
 
 /// Expand a directory path to a vector of paths to PNG files.
-fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>, Error> {
+fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
 
     for entry in fs::read_dir(dir)? {
@@ -72,7 +80,7 @@ fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>, Error> {
 }
 
 /// Read a vector of images using a vector of paths to PNG input files.
-fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>, Error> {
+fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>> {
     let mut images = Vec::with_capacity(paths.len());
 
     for path in paths {

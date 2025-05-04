@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use crate::error::Error;
+use crate::error::{Error, Result};
 
 /// A PNG image.
 pub struct Image {
@@ -22,7 +22,7 @@ pub struct Image {
 
 impl Image {
     /// Create a new image from a path.
-    pub fn from_path(path: PathBuf) -> Result<Image, Error> {
+    pub fn from_path(path: PathBuf) -> Result<Image> {
         if !path.is_file() {
             return Err(Error::InputMissing(path));
         }

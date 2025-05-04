@@ -1,4 +1,7 @@
-use crate::{error::Error, image::Image};
+use crate::{
+    error::{Error, Result},
+    image::Image,
+};
 
 /// An ICO icon.
 pub struct Icon {
@@ -36,7 +39,7 @@ impl Icon {
     }
 
     /// Encode the icon to ICO data.
-    pub fn encode(&self) -> Result<Vec<u8>, Error> {
+    pub fn encode(&self) -> Result<Vec<u8>> {
         let image_count = self.images.len();
 
         if image_count > u16::MAX as usize {
@@ -88,7 +91,7 @@ trait Buffer {
     fn put_u32(&mut self, value: u32);
 
     /// Put a u32 value to the buffer with a range check.
-    fn put_u32_checked(&mut self, value: usize) -> Result<(), Error> {
+    fn put_u32_checked(&mut self, value: usize) -> Result<()> {
         if value <= u32::MAX as usize {
             self.put_u32(value as u32);
             Ok(())
@@ -98,7 +101,7 @@ trait Buffer {
     }
 
     /// Put an image dimension to the buffer with a range check.
-    fn put_dimension_checked(&mut self, value: u32) -> Result<(), Error> {
+    fn put_dimension_checked(&mut self, value: u32) -> Result<()> {
         match value {
             1..=255 => {
                 self.put_u8(value as u8);
