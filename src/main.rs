@@ -58,7 +58,12 @@ fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>, Error> {
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
 
-        if path.is_file() && path.extension().unwrap_or_default().to_ascii_lowercase() == "png" {
+        if path.is_file()
+            && path
+                .extension()
+                .unwrap_or_default()
+                .eq_ignore_ascii_case("png")
+        {
             paths.push(path);
         }
     }
