@@ -3,32 +3,20 @@ mod error;
 mod icon;
 mod image;
 
-use std::{
-    fs,
-    path::PathBuf,
-    process::{ExitCode, Termination},
-};
+use std::{fs, path::PathBuf};
 
 use config::Config;
-use error::{Error, Result};
+use error::{Error, Exit, Result, RunResult};
 use icon::Icon;
 use image::Image;
 
-/// Runs Pico and exits with an exit code.
-fn main() -> ExitCode {
-    // The result of `try_run()` could be returned, but clap defines errors with
-    // output streams and exit codes, including for displaying help and version
-    // information. Clap errors must be handled as special cases for Pico to
-    // behave as expected. Additionally, returning a `Result` from `main()`
-    // displays errors with user-unfriendly debug printing.
-    match try_run() {
-        Ok(_) => ExitCode::SUCCESS,
-        Err(error) => error.report(),
-    }
+/// Runs Pico and exits.
+fn main() -> Exit {
+    try_run().into()
 }
 
 /// Runs Pico and returns a result.
-fn try_run() -> Result<()> {
+fn try_run() -> RunResult {
     let config = Config::new()?;
 
     if config.output_path.is_file() && !config.force {

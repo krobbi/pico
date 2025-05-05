@@ -10,6 +10,9 @@ use std::{
 /// A result that may contain a Pico error.
 pub type Result<T> = result::Result<T, Error>;
 
+/// A result of running Pico.
+pub type RunResult = Result<()>;
+
 /// An error raised by Pico.
 #[derive(Debug)]
 pub enum Error {
@@ -34,6 +37,18 @@ pub enum Error {
 
     /// An error caused by the ICO output file failing to be encoded.
     EncodeFailed,
+}
+
+impl From<io::Error> for Error {
+    fn from(value: io::Error) -> Self {
+        Self::Io(value)
+    }
+}
+
+impl From<clap::Error> for Error {
+    fn from(value: clap::Error) -> Self {
+        Self::Clap(value)
+    }
 }
 
 impl error::Error for Error {
@@ -70,26 +85,30 @@ impl Display for Error {
     }
 }
 
-impl Termination for Error {
+/// A mode of exiting Pico from a run result.
+pub struct Exit {
+    /// The run result.
+    run_result: RunResult,
+}
+
+impl From<RunResult> for Exit {
+    fn from(value: RunResult) -> Self {
+        Self { run_result: value }
+    }
+}
+
+impl Termination for Exit {
     fn report(self) -> ExitCode {
-        if let Self::Clap(error) = self {
-            let _ = error.print();
-            ExitCode::from(u8::try_from(error.exit_code()).unwrap_or(1))
-        } else {
-            let _ = writeln!(io::stderr(), "error: {self}");
-            ExitCode::FAILURE
+        match self.run_result {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(Error::Clap(error)) => {
+                let _ = error.print();
+                ExitCode::from(u8::try_from(error.exit_code()).unwrap_or(1))
+            }
+            Err(error) => {
+                let _ = writeln!(io::stderr(), "error: {error}");
+                ExitCode::FAILURE
+            }
         }
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(value: io::Error) -> Self {
-        Self::Io(value)
-    }
-}
-
-impl From<clap::Error> for Error {
-    fn from(value: clap::Error) -> Self {
-        Self::Clap(value)
     }
 }
