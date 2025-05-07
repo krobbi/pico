@@ -26,8 +26,8 @@ pub enum Error {
     /// the '--force' flag.
     OutputExists(PathBuf),
 
-    /// An error caused by having no valid PNG input file paths.
-    NoInputs,
+    /// An error caused by having no PNG input file paths.
+    NoInputPaths,
 
     /// An error caused by a PNG input file not existing.
     InputMissing(PathBuf),
@@ -71,7 +71,7 @@ impl Display for Error {
                 "ICO output file '{}' already exists, try '--force' to overwrite it",
                 path.display()
             ),
-            Self::NoInputs => f.write_str("no PNG input file paths were found"),
+            Self::NoInputPaths => f.write_str("no PNG input file paths were found"),
             Self::InputMissing(path) => {
                 write!(f, "PNG input file '{}' does not exist", path.display())
             }

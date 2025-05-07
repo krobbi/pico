@@ -3,7 +3,10 @@ mod error;
 mod icon;
 mod image;
 
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use config::Config;
 use error::{Error, Exit, Result, RunResult};
@@ -20,41 +23,43 @@ fn try_run() -> RunResult {
     let config = Config::new()?;
 
     if config.output_path.is_file() && !config.force {
-        return Err(Error::OutputExists(config.output_path.clone()));
+        return Err(Error::OutputExists(config.output_path));
     }
 
-    let paths = expand_paths(&config.input_paths)?;
-    let images = read_images(paths)?;
+    let input_paths = expand_dir_paths(config.input_paths)?;
+
+    if input_paths.is_empty() {
+        return Err(Error::NoInputPaths);
+    }
+
+    let images = read_images(input_paths)?;
     let data = Icon::from_images(images, config.sort).encode()?;
     fs::write(&config.output_path, data.as_slice())?;
     Ok(())
 }
 
-/// Expand a vector of paths to PNG files and directories to a vector of paths
-/// to PNG files.
-fn expand_paths(paths: &Vec<PathBuf>) -> Result<Vec<PathBuf>> {
-    let mut expanded = Vec::new();
+/// Consumes a vector of paths and returns a new vector with its directory paths
+/// expanded into their child PNG file paths.
+fn expand_dir_paths(paths: Vec<PathBuf>) -> Result<Vec<PathBuf>> {
+    let mut expanded_paths = Vec::with_capacity(paths.len());
 
     for path in paths {
         if path.is_dir() {
-            expanded.append(&mut expand_dir(path)?);
+            expanded_paths.append(&mut expand_dir_path(&path)?);
         } else {
-            expanded.push(path.clone());
+            expanded_paths.push(path);
         }
     }
 
-    if expanded.is_empty() {
-        Err(Error::NoInputs)
-    } else {
-        Ok(expanded)
-    }
+    Ok(expanded_paths)
 }
 
-/// Expand a directory path to a vector of paths to PNG files.
-fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>> {
-    let mut paths = Vec::new();
+/// Expands a directory path into a sorted vector of its child paths to PNG
+/// files.
+fn expand_dir_path(dir_path: &Path) -> Result<Vec<PathBuf>> {
+    let mut expanded_paths = vec![];
 
-    for entry in fs::read_dir(dir)? {
+    for entry in fs::read_dir(dir_path)? {
         let path = entry?.path();
 
         if path.is_file()
@@ -63,11 +68,12 @@ fn expand_dir(dir: &PathBuf) -> Result<Vec<PathBuf>> {
                 .unwrap_or_default()
                 .eq_ignore_ascii_case("png")
         {
-            paths.push(path);
+            expanded_paths.push(path);
         }
     }
 
-    Ok(paths)
+    expanded_paths.sort_unstable();
+    Ok(expanded_paths)
 }
 
 /// Read a vector of images using a vector of paths to PNG input files.

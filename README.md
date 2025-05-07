@@ -20,9 +20,9 @@ files. The order of the paths is 'stable' and will match the order of the data
 in the ICO output file.
 
 If a directory path is given, then it will be expanded into every file path in
-the directory with a `.png` file extension (case-insensitive.) The ordering of
-the file paths is system-dependent and may not be deterministic. Subdirectories
-will not be searched.
+the directory with a `.png` file extension (case-insensitive.) The expanded
+file paths are inserted in-place where the directory path was, sorted into
+alphabetical order. Subdirectories will not be searched.
 
 ## Options
 | Short | Long         | Arguments | Usage                              |
