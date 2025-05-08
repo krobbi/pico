@@ -47,8 +47,9 @@ impl Image {
         })
     }
 
-    /// Get the image's resolution in pixels.
+    /// Returns the image's resolution in pixels.
     pub fn resolution(&self) -> u64 {
-        self.width as u64 * self.height as u64
+        // Convert dimensions from `u32` to `u64` to avoid overflow.
+        u64::from(self.width) * u64::from(self.height)
     }
 }

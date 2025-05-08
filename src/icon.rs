@@ -5,37 +5,14 @@ use crate::{
 
 /// An ICO icon.
 pub struct Icon {
-    /// The icon's images.
+    /// The entries.
     images: Vec<Image>,
 }
 
 impl Icon {
-    /// Create a new icon from a vector of images.
-    pub fn from_images(images: Vec<Image>, sort: bool) -> Icon {
-        let mut icon = Icon {
-            images: Vec::with_capacity(images.len()),
-        };
-
-        for image in images {
-            icon.insert_image(image, sort);
-        }
-
-        icon
-    }
-
-    /// Insert an image into the icon.
-    fn insert_image(&mut self, image: Image, sort: bool) {
-        let mut index = self.images.len();
-
-        if sort {
-            let resolution = image.resolution();
-
-            while index > 0 && resolution > self.images[index - 1].resolution() {
-                index -= 1;
-            }
-        }
-
-        self.images.insert(index, image);
+    /// Creates a new icon from its entries.
+    pub fn new(images: Vec<Image>) -> Self {
+        Self { images }
     }
 
     /// Encode the icon to ICO data.

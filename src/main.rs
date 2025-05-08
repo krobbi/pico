@@ -4,6 +4,7 @@ mod icon;
 mod image;
 
 use std::{
+    cmp::Reverse,
     fs,
     path::{Path, PathBuf},
 };
@@ -32,8 +33,13 @@ fn try_run() -> RunResult {
         return Err(Error::NoInputPaths);
     }
 
-    let images = read_images(input_paths)?;
-    let data = Icon::from_images(images, config.sort_entries).encode()?;
+    let mut images = read_images(input_paths)?;
+
+    if config.sort_entries {
+        images.sort_by_key(|image| Reverse(image.resolution()));
+    }
+
+    let data = Icon::new(images).encode()?;
     fs::write(&config.output_path, data.as_slice())?;
     Ok(())
 }
@@ -76,7 +82,8 @@ fn expand_dir_path(dir_path: &Path) -> Result<Vec<PathBuf>> {
     Ok(expanded_paths)
 }
 
-/// Read a vector of images using a vector of paths to PNG input files.
+/// Consumes a vector of file paths and returns a new vector of images from disk
+/// at the corresponding paths.
 fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>> {
     let mut images = Vec::with_capacity(paths.len());
 
