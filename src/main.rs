@@ -22,7 +22,7 @@ fn main() -> Exit {
 fn try_run() -> RunResult {
     let config = Config::new()?;
 
-    if config.output_path.is_file() && !config.force {
+    if !config.overwrite_output && config.output_path.is_file() {
         return Err(Error::OutputExists(config.output_path));
     }
 
@@ -33,7 +33,7 @@ fn try_run() -> RunResult {
     }
 
     let images = read_images(input_paths)?;
-    let data = Icon::from_images(images, config.sort).encode()?;
+    let data = Icon::from_images(images, config.sort_entries).encode()?;
     fs::write(&config.output_path, data.as_slice())?;
     Ok(())
 }

@@ -13,10 +13,10 @@ pub struct Config {
     pub output_path: PathBuf,
 
     /// Whether to sort ICO entries by descending resolution.
-    pub sort: bool,
+    pub sort_entries: bool,
 
     /// Whether to overwrite an existing ICO output file.
-    pub force: bool,
+    pub overwrite_output: bool,
 }
 
 impl Config {
@@ -24,37 +24,32 @@ impl Config {
     pub fn new() -> Result<Self> {
         let mut matches = command!()
             .arg(
-                arg!(<input>... "One or more PNG input files or directories")
+                arg!(<INPUT>... "One or more PNG input file or directory paths")
                     .value_parser(value_parser!(PathBuf)),
             )
             .arg(
-                arg!(-o --output <path> "ICO output file")
-                    .required(false)
+                arg!(-o --output <PATH> "ICO output file path")
                     .value_parser(value_parser!(PathBuf)),
             )
-            .arg(arg!(-s --sort "Sort ICO entries by resolution"))
+            .arg(arg!(-s --sort "Sort ICO entries by descending resolution"))
             .arg(arg!(-f --force "Overwrite existing ICO output file"))
             .try_get_matches()?;
 
-        let input_paths: Vec<PathBuf> = matches.remove_many("input").unwrap_or_default().collect();
-        assert!(
-            !input_paths.is_empty(),
-            "usage string guarantees that `input_paths` is not empty"
-        );
+        let input_paths: Vec<PathBuf> = matches.remove_many("INPUT").unwrap_or_default().collect();
 
         let output_path = match matches.remove_one("output") {
             Some(path) => path,
             None => input_paths
                 .first()
-                .expect("already asserted that `input_paths` is not empty")
+                .expect("usage string should guarantee that `input_paths` is not empty")
                 .with_extension("ico"),
         };
 
         Ok(Self {
             input_paths,
             output_path,
-            sort: matches.get_flag("sort"),
-            force: matches.get_flag("force"),
+            sort_entries: matches.get_flag("sort"),
+            overwrite_output: matches.get_flag("force"),
         })
     }
 }

@@ -1,19 +1,19 @@
 # Pico
 Pico converts PNG images to ICO icons by packing the PNG data directly into the
-ICO file. This feature has been supported since Windows Vista and typically
-results in smaller ICO files.
+ICO file. This feature has been supported since Windows Vista and results in
+smaller ICO files.
 
 Build Pico with `cargo build --release` and move the executable from
 `target/release/pico(.exe)` to a directory with environment access. After this,
 you can use Pico from the command line:
 ```shell
-pico [OPTIONS] <input>...
+pico [OPTIONS] <INPUT>...
 ```
 
 ## Arguments
-| Argument     | Usage                                      |
-| :----------- | :----------------------------------------- |
-| `<input>...` | One or more PNG input files or directories |
+| Argument     | Usage                                         |
+| :----------- | :-------------------------------------------- |
+| `<INPUT>...` | One or more PNG input file or directory paths |
 
 Pico must be given one or more unnamed arguments containing paths to PNG input
 files. The order of the paths is 'stable' and will match the order of the data
@@ -25,13 +25,13 @@ file paths are inserted in-place where the directory path was, sorted into
 alphabetical order. Subdirectories will not be searched.
 
 ## Options
-| Short | Long         | Arguments | Usage                              |
-| :---- | :----------- | :-------- | :--------------------------------- |
-| `-o`  | `--output`   | `<path>`  | ICO output file                    |
-| `-s`  | `--sort`     | _(None)_  | Sort ICO entries by resolution     |
-| `-f`  | `--force`    | _(None)_  | Overwrite existing ICO output file |
-| `-h`  | `--help`     | _(None)_  | Print help                         |
-| `-V`  | `--version`  | _(None)_  | Print version                      |
+| Short | Long         | Arguments | Usage                                     |
+| :---- | :----------- | :-------- | :---------------------------------------- |
+| `-o`  | `--output`   | `<PATH>`  | ICO output file path                      |
+| `-s`  | `--sort`     | _(None)_  | Sort ICO entries by descending resolution |
+| `-f`  | `--force`    | _(None)_  | Overwrite existing ICO output file        |
+| `-h`  | `--help`     | _(None)_  | Print help                                |
+| `-V`  | `--version`  | _(None)_  | Print version                             |
 
 If the `--output` option is not set, then the path to the ICO output file will
 be the same as the first PNG input file path, but with a `.ico` file extension.
