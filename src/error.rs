@@ -103,7 +103,7 @@ impl Termination for Exit {
             Ok(()) => ExitCode::SUCCESS,
             Err(Error::Clap(error)) => {
                 let _ = error.print();
-                ExitCode::from(u8::try_from(error.exit_code()).unwrap_or(1))
+                u8::try_from(error.exit_code()).unwrap_or(1).into()
             }
             Err(error) => {
                 let _ = writeln!(io::stderr(), "error: {error}");
