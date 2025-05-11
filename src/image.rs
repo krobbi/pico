@@ -21,8 +21,8 @@ pub struct Image {
 }
 
 impl Image {
-    /// Create a new image from a path.
-    pub fn from_path(path: PathBuf) -> Result<Image> {
+    /// Creates a new image from its path.
+    pub fn from_path(path: PathBuf) -> Result<Self> {
         if !path.is_file() {
             return Err(Error::InputMissing(path));
         }
@@ -36,7 +36,11 @@ impl Image {
 
         let info = reader.info();
 
-        Ok(Image {
+        if info.is_animated() {
+            return Err(Error::InputAnimated(path));
+        }
+
+        Ok(Self {
             width: info.width,
             height: info.height,
             palette_size: info
