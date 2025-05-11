@@ -29,8 +29,9 @@ impl Image {
 
         let data = fs::read(&path)?;
 
-        let Ok(reader) = png::Decoder::new(data.as_slice()).read_info() else {
-            return Err(Error::DecodeFailed(path));
+        let reader = match png::Decoder::new(data.as_slice()).read_info() {
+            Ok(reader) => reader,
+            Err(error) => return Err(Error::InputDecodeFailed(path, error)),
         };
 
         let info = reader.info();
