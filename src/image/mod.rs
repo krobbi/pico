@@ -47,10 +47,6 @@ impl Image {
 
         let info = reader.info();
 
-        if info.is_animated() {
-            return Err(Error::InputAnimated(path));
-        }
-
         Ok(Self {
             width: info.width,
             height: info.height,

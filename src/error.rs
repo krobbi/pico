@@ -39,10 +39,6 @@ pub enum Error {
     #[deprecated = "the `png` library is being replaced with a lightweight skim-reader"]
     InputDecodeFailed(PathBuf, png::DecodingError),
 
-    /// An error caused by a PNG input file being animated.
-    #[deprecated = "PNG validation should only be done where it is critical"]
-    InputAnimated(PathBuf),
-
     /// An error caused by the ICO output file failing to be encoded.
     EncodeFailed,
 }
@@ -95,9 +91,6 @@ impl Display for Error {
                 "could not decode PNG input file '{}': {error}",
                 path.display()
             ),
-            Self::InputAnimated(path) => {
-                write!(f, "PNG input file '{}' is animated", path.display())
-            }
             Self::EncodeFailed => f.write_str("ICO output file could not be encoded"),
         }
     }
