@@ -88,7 +88,7 @@ fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>> {
     let mut images = Vec::with_capacity(paths.len());
 
     for path in paths {
-        images.push(Image::from_path(path)?);
+        images.push(Image::new(path)?);
     }
 
     Ok(images)

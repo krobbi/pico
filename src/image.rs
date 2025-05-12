@@ -4,25 +4,25 @@ use crate::error::{Error, Result};
 
 /// A PNG image.
 pub struct Image {
-    /// The image's width in pixels.
+    /// The width in pixels.
     pub width: u32,
 
-    /// The image's height in pixels.
+    /// The height in pixels.
     pub height: u32,
 
-    /// The number of colors in the image's palette, if applicable.
+    /// The number of colors in the optional palette.
     pub palette_size: Option<u16>,
 
-    /// The number of bits per pixel in the image.
+    /// The number of bits per pixel.
     pub bits_per_pixel: u8,
 
-    /// The image's raw data.
+    /// The raw data.
     pub data: Vec<u8>,
 }
 
 impl Image {
     /// Creates a new image from its path.
-    pub fn from_path(path: PathBuf) -> Result<Self> {
+    pub fn new(path: PathBuf) -> Result<Self> {
         if !path.is_file() {
             return Err(Error::InputMissing(path));
         }
