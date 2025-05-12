@@ -2,7 +2,7 @@ mod decode;
 
 pub use decode::Error as DecodeError;
 
-use std::{fs, path::PathBuf};
+use std::{fs, num::NonZeroU32, path::PathBuf};
 
 use decode::PngCursor;
 
@@ -11,10 +11,10 @@ use crate::error::{Error, Result};
 /// A PNG image.
 pub struct Image {
     /// The width in pixels.
-    pub width: u32,
+    pub width: NonZeroU32,
 
     /// The height in pixels.
-    pub height: u32,
+    pub height: NonZeroU32,
 
     /// The number of colors in the optional palette.
     pub palette_size: Option<u16>,
@@ -33,10 +33,21 @@ impl Image {
             return Err(Error::InputMissing(path));
         }
 
-        let cursor = match PngCursor::new(fs::read(&path)?) {
-            Ok(cursor) => cursor,
-            Err(error) => return Err(Error::Decode(path, error)),
-        };
+        /// Evaluates an expression that may raise a PNG decoding error.
+        macro_rules! try_decode {
+            ($expr:expr) => {
+                (match ($expr) {
+                    Ok(value) => value,
+                    Err::<_, DecodeError>(error) => return Err(Error::Decode(path, error)),
+                })
+            };
+        }
+
+        let mut cursor = try_decode!(PngCursor::new(fs::read(&path)?));
+
+        try_decode!(cursor.find_chunk(*b"IHDR"));
+        let width = try_decode!(cursor.read_dimension());
+        let height = try_decode!(cursor.read_dimension());
 
         let data = cursor.into_data();
 
@@ -48,8 +59,8 @@ impl Image {
         let info = reader.info();
 
         Ok(Self {
-            width: info.width,
-            height: info.height,
+            width,
+            height,
             palette_size: info
                 .palette
                 .as_ref()
@@ -61,7 +72,7 @@ impl Image {
 
     /// Returns the image's resolution in pixels.
     pub fn resolution(&self) -> u64 {
-        // Convert dimensions from `u32` to `u64` to avoid overflow.
-        u64::from(self.width) * u64::from(self.height)
+        // Convert dimensions to `u64` to avoid overflow.
+        u64::from(self.width.get()) * u64::from(self.height.get())
     }
 }

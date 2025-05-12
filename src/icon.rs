@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 use crate::{
     error::{Error, Result},
     image::Image,
@@ -78,10 +80,15 @@ trait Buffer {
     }
 
     /// Put an image dimension to the buffer with a range check.
-    fn put_dimension_checked(&mut self, value: u32) -> Result<()> {
-        match value {
-            1..=255 => {
-                self.put_u8(value as u8);
+    fn put_dimension_checked(&mut self, value: NonZeroU32) -> Result<()> {
+        match value.get() {
+            0 => unreachable!("`NonZeroU32` type should guarantee that `value` is non-zero"),
+            value @ 1..=255 => {
+                self.put_u8(
+                    u8::try_from(value)
+                        .expect("pattern should guarantee that `value` is valid as a `u8`"),
+                );
+
                 Ok(())
             }
             256 => {
