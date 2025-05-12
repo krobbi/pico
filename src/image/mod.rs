@@ -1,4 +1,10 @@
+mod decode;
+
+pub use decode::Error as DecodeError;
+
 use std::{fs, path::PathBuf};
+
+use decode::PngCursor;
 
 use crate::error::{Error, Result};
 
@@ -27,7 +33,12 @@ impl Image {
             return Err(Error::InputMissing(path));
         }
 
-        let data = fs::read(&path)?;
+        let cursor = match PngCursor::new(fs::read(&path)?) {
+            Ok(cursor) => cursor,
+            Err(error) => return Err(Error::Decode(path, error)),
+        };
+
+        let data = cursor.into_data();
 
         let reader = match png::Decoder::new(data.as_slice()).read_info() {
             Ok(reader) => reader,

@@ -22,6 +22,9 @@ pub enum Error {
     /// An error raised by clap.
     Clap(clap::Error),
 
+    /// An error caused by a PNG decoding error on a PNG input file.
+    Decode(PathBuf, crate::image::DecodeError),
+
     /// An error caused by the ICO output file already existing without using
     /// the '--force' flag.
     OutputExists(PathBuf),
@@ -33,9 +36,11 @@ pub enum Error {
     InputMissing(PathBuf),
 
     /// An error caused by a PNG decoding error on a PNG input file.
+    #[deprecated = "the `png` library is being replaced with a lightweight skim-reader"]
     InputDecodeFailed(PathBuf, png::DecodingError),
 
     /// An error caused by a PNG input file being animated.
+    #[deprecated = "PNG validation should only be done where it is critical"]
     InputAnimated(PathBuf),
 
     /// An error caused by the ICO output file failing to be encoded.
@@ -58,6 +63,7 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(error) => Some(error),
+            Self::Decode(_, error) => Some(error),
             Self::Clap(error) => Some(error),
             Self::InputDecodeFailed(_, error) => Some(error),
             _ => None,
@@ -70,6 +76,11 @@ impl Display for Error {
         match self {
             Self::Io(error) => error.fmt(f),
             Self::Clap(error) => error.fmt(f),
+            Self::Decode(path, error) => write!(
+                f,
+                "could not decode PNG input file '{}': {error}",
+                path.display()
+            ),
             Self::OutputExists(path) => write!(
                 f,
                 "ICO output file '{}' already exists, try '--force' to overwrite it",
