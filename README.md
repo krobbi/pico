@@ -79,9 +79,13 @@ pico icon_32x.png icons/ -sf -o icon.ico
 ```
 
 # Dependencies
-Pico uses the following libraries:
-* [clap](https://crates.io/crates/clap) - Command line argument parsing.
-* [png](https://crates.io/crates/png) - PNG parsing and validation.
+Pico uses [clap](https://crates.io/crates/clap) for command line argument
+parsing.
+
+Earlier versions of Pico used [png](https://crates.io/crates/png) to parse and
+validate PNG files, but Pico now naïvely 'skim reads' only the data it needs
+for building ICO files. This was done to improve performance and reduce code
+size.
 
 # License
 Pico is released under the MIT License. See [LICENSE.txt](./LICENSE.txt) for a
