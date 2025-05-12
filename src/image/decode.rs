@@ -65,6 +65,16 @@ impl PngCursor {
         }
     }
 
+    /// Reads the next bit depth value.
+    pub fn read_bit_depth(&mut self) -> Result<BitDepth> {
+        let value = self.read_u8()?;
+
+        match BitDepth::from_u8(value) {
+            Some(bit_depth) => Ok(bit_depth),
+            None => Err(Error::InvalidBitDepth(value)),
+        }
+    }
+
     /// Consumes the cursor and returns its underlying data.
     pub fn into_data(self) -> Vec<u8> {
         self.cursor.into_inner()
@@ -87,6 +97,13 @@ impl PngCursor {
         Ok(())
     }
 
+    /// Reads the next `u8` value.
+    fn read_u8(&mut self) -> Result<u8> {
+        let mut byte = [0];
+        self.cursor.read_exact(&mut byte)?;
+        Ok(byte[0])
+    }
+
     /// Reads the next `u32` value.
     fn read_u32(&mut self) -> Result<u32> {
         Ok(u32::from_be_bytes(self.read_4u8()?))
@@ -97,6 +114,45 @@ impl PngCursor {
         let mut bytes = [0; 4];
         self.cursor.read_exact(&mut bytes)?;
         Ok(bytes)
+    }
+}
+
+/// A number of bits per sample allowed in a PNG image.
+#[derive(Clone, Copy)]
+#[repr(u8)]
+pub enum BitDepth {
+    /// A bit depth of 1 bit per sample.
+    One = 1,
+
+    /// A bit depth of 2 bits per sample.
+    Two = 2,
+
+    /// A bit depth of 4 bits per sample.
+    Four = 4,
+
+    /// A bit depth of 8 bits per sample.
+    Eight = 8,
+
+    /// A bit depth of 16 bits per sample.
+    Sixteen = 16,
+}
+
+impl BitDepth {
+    /// Returns the number of bits per sample provided by the bit depth.
+    pub fn bits_per_sample(self) -> u8 {
+        self as u8
+    }
+
+    /// Creates a new optional bit depth from a `u8` value.
+    fn from_u8(value: u8) -> Option<Self> {
+        match value {
+            1 => Some(Self::One),
+            2 => Some(Self::Two),
+            4 => Some(Self::Four),
+            8 => Some(Self::Eight),
+            16 => Some(Self::Sixteen),
+            _ => None,
+        }
     }
 }
 
@@ -111,6 +167,9 @@ pub enum Error {
 
     /// An error caused by PNG data's width or height being zero.
     ZeroDimension(num::TryFromIntError),
+
+    /// An error caused by PNG data having an invalid bit depth value.
+    InvalidBitDepth(u8),
 }
 
 impl From<io::Error> for Error {
@@ -123,8 +182,8 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(error) => Some(error),
-            Self::SignatureNotPng => None,
             Self::ZeroDimension(error) => Some(error),
+            _ => None,
         }
     }
 }
@@ -135,6 +194,7 @@ impl Display for Error {
             Self::Io(error) => error.fmt(f),
             Self::SignatureNotPng => f.write_str("signature is not a PNG image signature"),
             Self::ZeroDimension(_) => f.write_str("width or height is zero"),
+            Self::InvalidBitDepth(value) => write!(f, "invalid bit depth of {value}"),
         }
     }
 }

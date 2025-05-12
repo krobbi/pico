@@ -49,6 +49,9 @@ impl Image {
         let width = try_decode!(cursor.read_dimension());
         let height = try_decode!(cursor.read_dimension());
 
+        let bit_depth = try_decode!(cursor.read_bit_depth());
+        eprintln!("debug: bit depth: {}", bit_depth.bits_per_sample());
+
         let data = cursor.into_data();
 
         let reader = match png::Decoder::new(data.as_slice()).read_info() {
