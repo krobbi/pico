@@ -75,6 +75,15 @@ impl PngCursor {
         }
     }
 
+    pub fn read_color_type(&mut self) -> Result<ColorType> {
+        let value = self.read_u8()?;
+
+        match ColorType::from_u8(value) {
+            Some(color_type) => Ok(color_type),
+            None => Err(Error::InvalidColorType(value)),
+        }
+    }
+
     /// Consumes the cursor and returns its underlying data.
     pub fn into_data(self) -> Vec<u8> {
         self.cursor.into_inner()
@@ -117,6 +126,9 @@ impl PngCursor {
     }
 }
 
+// `BitDepth` and `ColorType` enums based on the `png` crate:
+// https://github.com/image-rs/image-png/blob/master/src/common.rs
+
 /// A number of bits per sample allowed in a PNG image.
 #[derive(Clone, Copy)]
 #[repr(u8)]
@@ -156,6 +168,50 @@ impl BitDepth {
     }
 }
 
+/// A color type allowed in a PNG image.
+#[derive(Clone, Copy)]
+#[repr(u8)]
+pub enum ColorType {
+    /// A color type where pixels have a grey sample.
+    Greyscale = 0,
+
+    /// A color type where pixels have red, green, and blue samples.
+    Truecolor = 2,
+
+    /// A color type where pixels have a palette index.
+    IndexedColor = 3,
+
+    /// A color type where pixels have a grey sample and an alpha sample.
+    GreyscaleWithAlpha = 4,
+
+    /// A color type where pixels have red, green, blue, and alpha samples.
+    TruecolorWithAlpha = 6,
+}
+
+impl ColorType {
+    /// Returns the number of samples per pixel provided by the color type.
+    pub fn samples_per_pixel(self) -> u8 {
+        match self {
+            Self::Greyscale | Self::IndexedColor => 1,
+            Self::Truecolor => 3,
+            Self::GreyscaleWithAlpha => 2,
+            Self::TruecolorWithAlpha => 4,
+        }
+    }
+
+    /// Creates a new optional color type from a `u8` value.
+    fn from_u8(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(Self::Greyscale),
+            2 => Some(Self::Truecolor),
+            3 => Some(Self::IndexedColor),
+            4 => Some(Self::GreyscaleWithAlpha),
+            6 => Some(Self::TruecolorWithAlpha),
+            _ => None,
+        }
+    }
+}
+
 /// An error encountered while decoding PNG data.
 #[derive(Debug)]
 pub enum Error {
@@ -170,6 +226,9 @@ pub enum Error {
 
     /// An error caused by PNG data having an invalid bit depth value.
     InvalidBitDepth(u8),
+
+    /// An error caused by PNG data having an invalid color type value.
+    InvalidColorType(u8),
 }
 
 impl From<io::Error> for Error {
@@ -195,6 +254,7 @@ impl Display for Error {
             Self::SignatureNotPng => f.write_str("signature is not a PNG image signature"),
             Self::ZeroDimension(_) => f.write_str("width or height is zero"),
             Self::InvalidBitDepth(value) => write!(f, "invalid bit depth of {value}"),
+            Self::InvalidColorType(value) => write!(f, "invalid color type of {value}"),
         }
     }
 }

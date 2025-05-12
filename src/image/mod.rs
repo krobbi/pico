@@ -45,12 +45,15 @@ impl Image {
 
         let mut cursor = try_decode!(PngCursor::new(fs::read(&path)?));
 
+        // Values must be read in order according to the PNG specification:
+        // https://www.w3.org/TR/png-3/#11IHDR
         try_decode!(cursor.find_chunk(*b"IHDR"));
         let width = try_decode!(cursor.read_dimension());
         let height = try_decode!(cursor.read_dimension());
 
         let bit_depth = try_decode!(cursor.read_bit_depth());
-        eprintln!("debug: bit depth: {}", bit_depth.bits_per_sample());
+        let color_type = try_decode!(cursor.read_color_type());
+        let bits_per_pixel = bit_depth.bits_per_sample() * color_type.samples_per_pixel();
 
         let data = cursor.into_data();
 
@@ -68,7 +71,7 @@ impl Image {
                 .palette
                 .as_ref()
                 .map(|palette| palette.len() as u16 / 3),
-            bits_per_pixel: info.bits_per_pixel() as u8,
+            bits_per_pixel,
             data,
         })
     }
