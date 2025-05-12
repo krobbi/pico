@@ -57,6 +57,11 @@ impl PngCursor {
         Ok(())
     }
 
+    /// Returns the length of the current chunk's data field in bytes.
+    pub fn chunk_length(&self) -> u32 {
+        self.chunk_length
+    }
+
     /// Reads the next width or height value.
     pub fn read_dimension(&mut self) -> Result<NonZeroU32> {
         match NonZeroU32::try_from(self.read_u32()?) {

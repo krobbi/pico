@@ -35,10 +35,6 @@ pub enum Error {
     /// An error caused by a PNG input file not existing.
     InputMissing(PathBuf),
 
-    /// An error caused by a PNG decoding error on a PNG input file.
-    #[deprecated = "the `png` library is being replaced with a lightweight skim-reader"]
-    InputDecodeFailed(PathBuf, png::DecodingError),
-
     /// An error caused by the ICO output file failing to be encoded.
     EncodeFailed,
 }
@@ -61,7 +57,6 @@ impl error::Error for Error {
             Self::Io(error) => Some(error),
             Self::Decode(_, error) => Some(error),
             Self::Clap(error) => Some(error),
-            Self::InputDecodeFailed(_, error) => Some(error),
             _ => None,
         }
     }
@@ -86,11 +81,6 @@ impl Display for Error {
             Self::InputMissing(path) => {
                 write!(f, "PNG input file '{}' does not exist", path.display())
             }
-            Self::InputDecodeFailed(path, error) => write!(
-                f,
-                "could not decode PNG input file '{}': {error}",
-                path.display()
-            ),
             Self::EncodeFailed => f.write_str("ICO output file could not be encoded"),
         }
     }

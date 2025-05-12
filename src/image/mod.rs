@@ -4,7 +4,7 @@ pub use decode::Error as DecodeError;
 
 use std::{fs, num::NonZeroU32, path::PathBuf};
 
-use decode::PngCursor;
+use decode::{ColorType, PngCursor};
 
 use crate::error::{Error, Result};
 
@@ -17,7 +17,7 @@ pub struct Image {
     pub height: NonZeroU32,
 
     /// The number of colors in the optional palette.
-    pub palette_size: Option<u16>,
+    pub palette_size: Option<u32>,
 
     /// The number of bits per pixel.
     pub bits_per_pixel: u8,
@@ -55,22 +55,20 @@ impl Image {
         let color_type = try_decode!(cursor.read_color_type());
         let bits_per_pixel = bit_depth.bits_per_sample() * color_type.samples_per_pixel();
 
-        let data = cursor.into_data();
-
-        let reader = match png::Decoder::new(data.as_slice()).read_info() {
-            Ok(reader) => reader,
-            Err(error) => return Err(Error::InputDecodeFailed(path, error)),
+        let palette_size = match color_type {
+            ColorType::IndexedColor => {
+                try_decode!(cursor.find_chunk(*b"PLTE"));
+                Some(cursor.chunk_length() / 3)
+            }
+            _ => None,
         };
 
-        let info = reader.info();
+        let data = cursor.into_data();
 
         Ok(Self {
             width,
             height,
-            palette_size: info
-                .palette
-                .as_ref()
-                .map(|palette| palette.len() as u16 / 3),
+            palette_size,
             bits_per_pixel,
             data,
         })
