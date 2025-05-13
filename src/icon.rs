@@ -17,36 +17,37 @@ impl Icon {
 
     /// Encode the icon to ICO data.
     pub fn encode(&self) -> Result<Vec<u8>> {
-        let image_count = self.images.len();
-
-        if image_count > u16::MAX as usize {
+        let Ok(image_count) = u16::try_from(self.images.len()) else {
             return Err(Error::EncodeFailed);
-        }
+        };
 
+        // Values must be written in the order of the ICO file format:
+        // https://en.wikipedia.org/wiki/ICO_(file_format)#Header
         let mut ico = Vec::new();
-        ico.put_u16(0); // Reserved, should be 0.
-        ico.put_u16(1); // Image type, 1 for icon, 2 for cursor.
-        ico.put_u16(image_count as u16);
+        ico.put_u16(0); // Reserved. Must always be 0.
+        ico.put_u16(1); // Specifies image type: 1 for icon, 2 for cursor.
+        ico.put_u16(image_count);
 
         let mut data = Vec::new();
-        let mut data_offset = 6 + image_count * 16;
+        let mut data_offset = 6 + usize::from(image_count) * 16;
 
         for image in &self.images {
             ico.put_dimension_checked(image.width)?;
             ico.put_dimension_checked(image.height)?;
 
-            match image.palette_size {
-                Some(1..=255) => ico.put_u8(image.palette_size.unwrap() as u8),
-                None => ico.put_u8(0),
-                _ => return Err(Error::EncodeFailed),
+            // Specifies number of colors in the color palette. Should be 0 if
+            // the image does not use a palette.
+            match u8::try_from(image.palette_size.unwrap_or_default()) {
+                Ok(palette_size) => ico.put_u8(palette_size),
+                Err(_) => return Err(Error::EncodeFailed),
             }
 
-            ico.put_u8(0); // Reserved, should be 0.
-            ico.put_u16(1); // Color planes, should be 0 or 1.
-            ico.put_u16(image.bits_per_pixel as u16);
+            ico.put_u8(0); // Reserved. Should be 0.
+            ico.put_u16(1); // Specifies color planes. should be 0 or 1.
+            ico.put_u16(u16::from(image.bits_per_pixel));
             let data_size = image.data.len();
-            ico.put_u32_checked(data_size)?;
-            ico.put_u32_checked(data_offset)?;
+            ico.put_usize_checked(data_size)?;
+            ico.put_usize_checked(data_offset)?;
             data.append(&mut image.data.clone());
             data_offset += data_size;
         }
@@ -67,13 +68,14 @@ trait Buffer {
     /// Put a u32 value to the buffer.
     fn put_u32(&mut self, value: u32);
 
-    /// Put a u32 value to the buffer with a range check.
-    fn put_u32_checked(&mut self, value: usize) -> Result<()> {
-        if value <= u32::MAX as usize {
-            self.put_u32(value as u32);
-            Ok(())
-        } else {
-            Err(Error::EncodeFailed)
+    /// Put a usize value to the buffer with a 32-bit range.
+    fn put_usize_checked(&mut self, value: usize) -> Result<()> {
+        match u32::try_from(value) {
+            Ok(value) => {
+                self.put_u32(value);
+                Ok(())
+            }
+            Err(_) => Err(Error::EncodeFailed),
         }
     }
 
