@@ -90,7 +90,7 @@ impl PngCursor {
 
     /// Skips to the next chunk.
     fn next_chunk(&mut self) -> Result<()> {
-        // Add 4 to skip the chunk's CRC field.
+        // Add 4 to skip the current chunk's CRC field.
         self.cursor
             .set_position(self.chunk_position + u64::from(self.chunk_length) + 4);
 
