@@ -2,7 +2,7 @@ mod decode;
 
 pub use decode::Error as DecodeError;
 
-use std::{fs, num::NonZeroU32, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 use decode::{ColorType, PngCursor};
 
@@ -11,10 +11,10 @@ use crate::error::{Error, Result};
 /// A PNG image.
 pub struct Image {
     /// The width in pixels.
-    pub width: NonZeroU32,
+    pub width: u32,
 
     /// The height in pixels.
-    pub height: NonZeroU32,
+    pub height: u32,
 
     /// The number of colors in the optional palette.
     pub palette_size: Option<u32>,
@@ -47,13 +47,12 @@ impl Image {
 
         // Values must be read in order according to the PNG specification:
         // https://www.w3.org/TR/png-3/#11IHDR
-        try_decode!(cursor.find_chunk(*b"IHDR"));
-        let width = try_decode!(cursor.read_dimension());
-        let height = try_decode!(cursor.read_dimension());
+        let width = try_decode!(cursor.read_u32());
+        let height = try_decode!(cursor.read_u32());
 
-        let bit_depth = try_decode!(cursor.read_bit_depth());
+        let bit_depth = try_decode!(cursor.read_u8());
         let color_type = try_decode!(cursor.read_color_type());
-        let bits_per_pixel = bit_depth.bits_per_sample() * color_type.samples_per_pixel();
+        let bits_per_pixel = bit_depth * color_type.samples_per_pixel();
 
         let palette_size = match color_type {
             ColorType::IndexedColor => {
@@ -76,7 +75,7 @@ impl Image {
 
     /// Returns the image's resolution in pixels.
     pub fn resolution(&self) -> u64 {
-        // Convert dimensions to `u64` to avoid overflow.
-        u64::from(self.width.get()) * u64::from(self.height.get())
+        // Convert dimensions from `u32` to `u64` to avoid overflow.
+        u64::from(self.width) * u64::from(self.height)
     }
 }

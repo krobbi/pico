@@ -2,7 +2,6 @@ use std::{
     error,
     fmt::{self, Display, Formatter},
     io::{self, Cursor, Read},
-    num::{self, NonZeroU32},
     result,
 };
 
@@ -62,24 +61,19 @@ impl PngCursor {
         self.chunk_length
     }
 
-    /// Reads the next width or height value.
-    pub fn read_dimension(&mut self) -> Result<NonZeroU32> {
-        match NonZeroU32::try_from(self.read_u32()?) {
-            Ok(value) => Ok(value),
-            Err(error) => Err(Error::ZeroDimension(error)),
-        }
+    /// Reads the next `u8` value.
+    pub fn read_u8(&mut self) -> Result<u8> {
+        let mut value = [0];
+        self.cursor.read_exact(&mut value)?;
+        Ok(value[0])
     }
 
-    /// Reads the next bit depth value.
-    pub fn read_bit_depth(&mut self) -> Result<BitDepth> {
-        let value = self.read_u8()?;
-
-        match BitDepth::from_u8(value) {
-            Some(bit_depth) => Ok(bit_depth),
-            None => Err(Error::InvalidBitDepth(value)),
-        }
+    /// Reads the next `u32` value.
+    pub fn read_u32(&mut self) -> Result<u32> {
+        Ok(u32::from_be_bytes(self.read_four_bytes()?))
     }
 
+    /// Reads the next color type value.
     pub fn read_color_type(&mut self) -> Result<ColorType> {
         let value = self.read_u8()?;
 
@@ -106,74 +100,21 @@ impl PngCursor {
     /// Begins a new current chunk.
     fn begin_chunk(&mut self) -> Result<()> {
         self.chunk_length = self.read_u32()?;
-        self.chunk_type = self.read_4u8()?;
+        self.chunk_type = self.read_four_bytes()?;
         self.chunk_position = self.cursor.position();
         Ok(())
     }
 
-    /// Reads the next `u8` value.
-    fn read_u8(&mut self) -> Result<u8> {
-        let mut byte = [0];
-        self.cursor.read_exact(&mut byte)?;
-        Ok(byte[0])
-    }
-
-    /// Reads the next `u32` value.
-    fn read_u32(&mut self) -> Result<u32> {
-        Ok(u32::from_be_bytes(self.read_4u8()?))
-    }
-
-    /// Reads the next four `u8` values.
-    fn read_4u8(&mut self) -> Result<[u8; 4]> {
+    /// Reads the next four bytes.
+    fn read_four_bytes(&mut self) -> Result<[u8; 4]> {
         let mut bytes = [0; 4];
         self.cursor.read_exact(&mut bytes)?;
         Ok(bytes)
     }
 }
 
-// `BitDepth` and `ColorType` enums based on the `png` crate:
-// https://github.com/image-rs/image-png/blob/master/src/common.rs
-
-/// A number of bits per sample allowed in a PNG image.
-#[derive(Clone, Copy)]
-#[repr(u8)]
-pub enum BitDepth {
-    /// A bit depth of 1 bit per sample.
-    One = 1,
-
-    /// A bit depth of 2 bits per sample.
-    Two = 2,
-
-    /// A bit depth of 4 bits per sample.
-    Four = 4,
-
-    /// A bit depth of 8 bits per sample.
-    Eight = 8,
-
-    /// A bit depth of 16 bits per sample.
-    Sixteen = 16,
-}
-
-impl BitDepth {
-    /// Returns the number of bits per sample provided by the bit depth.
-    pub fn bits_per_sample(self) -> u8 {
-        self as u8
-    }
-
-    /// Creates a new optional bit depth from a `u8` value.
-    fn from_u8(value: u8) -> Option<Self> {
-        match value {
-            1 => Some(Self::One),
-            2 => Some(Self::Two),
-            4 => Some(Self::Four),
-            8 => Some(Self::Eight),
-            16 => Some(Self::Sixteen),
-            _ => None,
-        }
-    }
-}
-
-/// A color type allowed in a PNG image.
+/// A color type allowed in a PNG image. Based on the `ColorType` enum from the
+/// `png` crate.
 #[derive(Clone, Copy)]
 #[repr(u8)]
 pub enum ColorType {
@@ -226,12 +167,6 @@ pub enum Error {
     /// An error caused by PNG data's signature not being a PNG signature.
     SignatureNotPng,
 
-    /// An error caused by PNG data's width or height being zero.
-    ZeroDimension(num::TryFromIntError),
-
-    /// An error caused by PNG data having an invalid bit depth value.
-    InvalidBitDepth(u8),
-
     /// An error caused by PNG data having an invalid color type value.
     InvalidColorType(u8),
 }
@@ -246,7 +181,6 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(error) => Some(error),
-            Self::ZeroDimension(error) => Some(error),
             _ => None,
         }
     }
@@ -257,8 +191,6 @@ impl Display for Error {
         match self {
             Self::Io(error) => error.fmt(f),
             Self::SignatureNotPng => f.write_str("signature is not a PNG image signature"),
-            Self::ZeroDimension(_) => f.write_str("width or height is zero"),
-            Self::InvalidBitDepth(value) => write!(f, "invalid bit depth of {value}"),
             Self::InvalidColorType(value) => write!(f, "invalid color type of {value}"),
         }
     }
