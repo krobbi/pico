@@ -16,7 +16,7 @@ categories = [
 publish = false
 
 [dependencies]
-clap = { version = "4.5.37", features = ["cargo"] }
+clap = { version = "4.5.38", features = ["cargo"] }
 
 [profile.release]
 codegen-units = 1
