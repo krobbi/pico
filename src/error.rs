@@ -10,9 +10,6 @@ use std::{
 /// A result that may contain a Pico error.
 pub type Result<T> = result::Result<T, Error>;
 
-/// A result of running Pico.
-pub type RunResult = Result<()>;
-
 /// An error raised by Pico.
 #[derive(Debug)]
 pub enum Error {
@@ -86,21 +83,21 @@ impl Display for Error {
     }
 }
 
-/// A mode of exiting Pico from a run result.
+/// A mode of exiting Pico from a result.
 pub struct Exit {
-    /// The run result.
-    run_result: RunResult,
+    /// The result.
+    result: Result<()>,
 }
 
-impl From<RunResult> for Exit {
-    fn from(value: RunResult) -> Self {
-        Self { run_result: value }
+impl From<Result<()>> for Exit {
+    fn from(value: Result<()>) -> Self {
+        Self { result: value }
     }
 }
 
 impl Termination for Exit {
     fn report(self) -> ExitCode {
-        match self.run_result {
+        match self.result {
             Ok(()) => ExitCode::SUCCESS,
             Err(Error::Clap(error)) => {
                 let _ = error.print();

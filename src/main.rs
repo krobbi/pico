@@ -10,7 +10,7 @@ use std::{
 };
 
 use config::Config;
-use error::{Error, Exit, Result, RunResult};
+use error::{Error, Exit, Result};
 use icon::Icon;
 use image::Image;
 
@@ -20,7 +20,7 @@ fn main() -> Exit {
 }
 
 /// Runs Pico and returns a result.
-fn try_run() -> RunResult {
+fn try_run() -> Result<()> {
     let config = Config::new()?;
 
     if !config.overwrite_output && config.output_path.is_file() {
