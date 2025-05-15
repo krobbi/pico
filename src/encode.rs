@@ -1,13 +1,16 @@
 use std::{
     error,
     fmt::{self, Display, Formatter},
-    num,
+    num, result,
 };
 
 use crate::image::Image;
 
+/// A result that may contain an encode error.
+type Result<T> = result::Result<T, Error>;
+
 /// Consumes a vector of images and returns them encoded into ICO data.
-pub fn encode_icon(images: Vec<Image>) -> Result<Vec<u8>, Error> {
+pub fn encode_icon(images: Vec<Image>) -> Result<Vec<u8>> {
     const HEADER_SIZE: usize = 6;
     const ENTRY_SIZE: usize = 16;
 
@@ -27,6 +30,11 @@ pub fn encode_icon(images: Vec<Image>) -> Result<Vec<u8>, Error> {
     buffer.write_u16(image_count); // Specifies number of images in the file.
     debug_assert!(buffer.data.len() == HEADER_SIZE);
 
+    for image in images {
+        buffer.write_dimension(image.width)?;
+        buffer.write_dimension(image.height)?;
+    }
+
     Ok(buffer.into_data())
 }
 
@@ -44,9 +52,27 @@ impl Buffer {
         }
     }
 
+    /// Writes a `u8` value to the buffer.
+    fn write_u8(&mut self, value: u8) {
+        self.data.push(value);
+    }
+
     /// Writes a `u16` value to the buffer.
     fn write_u16(&mut self, value: u16) {
         self.data.extend_from_slice(&value.to_le_bytes());
+    }
+
+    /// Writes a dimension value to the buffer.
+    fn write_dimension(&mut self, value: u32) -> Result<()> {
+        match value {
+            0 => Err(Error::DimensionZero),
+            value @ 1..=255 => Ok(self.write_u8(
+                u8::try_from(value)
+                    .expect("pattern should guarantee that `value` is valid as a `u8`"),
+            )),
+            256 => Ok(self.write_u8(0)), // Value 0 means 256 pixels.
+            _ => Err(Error::DimensionTooLarge),
+        }
     }
 
     /// Consumes the buffer and returns its underlying data.
@@ -60,12 +86,19 @@ impl Buffer {
 pub enum Error {
     /// An error caused by having more images than are supported.
     TooManyImages(usize, num::TryFromIntError),
+
+    /// An error caused by an image having a width or height of zero.
+    DimensionZero,
+
+    /// An error caused by an image's width or height being too large.
+    DimensionTooLarge,
 }
 
 impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::TooManyImages(_, error) => Some(error),
+            _ => None,
         }
     }
 }
@@ -78,6 +111,8 @@ impl Display for Error {
                 "{image_count} images were found, but only up to {} are supported",
                 u16::MAX
             ),
+            Self::DimensionZero => f.write_str("width or height is zero"),
+            Self::DimensionTooLarge => f.write_str("width or height is greater than 256"),
         }
     }
 }
