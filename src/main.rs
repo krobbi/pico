@@ -1,6 +1,6 @@
 mod config;
+mod encode;
 mod error;
-mod icon;
 mod image;
 
 use std::{
@@ -11,7 +11,6 @@ use std::{
 
 use config::Config;
 use error::{Error, Exit, Result};
-use icon::Icon;
 use image::Image;
 
 /// Runs Pico and exits.
@@ -39,8 +38,8 @@ fn try_run() -> Result<()> {
         images.sort_by_key(|image| Reverse(image.resolution()));
     }
 
-    let data = Icon::new(images).encode()?;
-    fs::write(&config.output_path, data.as_slice())?;
+    let data = encode::encode_icon(images)?;
+    fs::write(config.output_path, data)?;
     Ok(())
 }
 
