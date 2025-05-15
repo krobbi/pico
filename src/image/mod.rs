@@ -9,6 +9,7 @@ use decode::{ColorType, PngCursor};
 use crate::error::{Error, Result};
 
 /// A PNG image.
+#[derive(Clone)] // TODO: Remove unnecessary `Clone` when new encoder is done.
 pub struct Image {
     /// The width in pixels.
     pub width: u32,

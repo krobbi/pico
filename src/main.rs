@@ -1,4 +1,5 @@
 mod config;
+mod encode;
 mod error;
 mod icon;
 mod image;
@@ -39,9 +40,10 @@ fn try_run() -> Result<()> {
         images.sort_by_key(|image| Reverse(image.resolution()));
     }
 
-    let data = Icon::new(images).encode()?;
+    let data = Icon::new(images.clone()).encode()?;
     fs::write(&config.output_path, data.as_slice())?;
-    Ok(())
+
+    write_icon(images, config.output_path.with_extension("new.ico"))
 }
 
 /// Consumes a vector of paths and returns a new vector with its directory paths
@@ -92,4 +94,11 @@ fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>> {
     }
 
     Ok(images)
+}
+
+/// Consumes a vector of images and writes them to disk as an ICO file at a
+/// consumed path.
+fn write_icon(images: Vec<Image>, path: PathBuf) -> Result<()> {
+    let data = encode::encode_icon(images);
+    Ok(fs::write(path, data)?)
 }
