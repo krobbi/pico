@@ -90,7 +90,9 @@ impl IcoBuffer {
         self.write_usize(self.next_image_offset)?;
         self.next_image_offset += image_size;
 
+        #[cfg(debug_assertions)]
         debug_assert_eq!(self.dir.len(), expected_dir_size);
+
         Ok(())
     }
 
