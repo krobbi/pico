@@ -22,6 +22,9 @@ pub enum Error {
     /// An error caused by a PNG decoding error on a PNG input file.
     Decode(PathBuf, crate::image::DecodeError),
 
+    /// An error caused by an ICO encoding error on an ICO output file.
+    Encode(PathBuf, crate::encode::Error),
+
     /// An error caused by the ICO output file already existing without using
     /// the '--force' flag.
     OutputExists(PathBuf),
@@ -33,7 +36,7 @@ pub enum Error {
     InputMissing(PathBuf),
 
     /// An error caused by the ICO output file failing to be encoded.
-    EncodeFailed,
+    EncodeFailed, // TODO: Remove variant when new encoder is finished.
 }
 
 impl From<io::Error> for Error {
@@ -52,8 +55,9 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(error) => Some(error),
-            Self::Decode(_, error) => Some(error),
             Self::Clap(error) => Some(error),
+            Self::Decode(_, error) => Some(error),
+            Self::Encode(_, error) => Some(error),
             _ => None,
         }
     }
@@ -67,6 +71,11 @@ impl Display for Error {
             Self::Decode(path, error) => write!(
                 f,
                 "could not decode PNG input file '{}': {error}",
+                path.display()
+            ),
+            Self::Encode(path, error) => write!(
+                f,
+                "could not encode ICO output file '{}': {error}",
                 path.display()
             ),
             Self::OutputExists(path) => write!(

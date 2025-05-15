@@ -99,6 +99,10 @@ fn read_images(paths: Vec<PathBuf>) -> Result<Vec<Image>> {
 /// Consumes a vector of images and writes them to disk as an ICO file at a
 /// consumed path.
 fn write_icon(images: Vec<Image>, path: PathBuf) -> Result<()> {
-    let data = encode::encode_icon(images);
+    let data = match encode::encode_icon(images) {
+        Ok(data) => data,
+        Err(error) => return Err(Error::Encode(path, error)),
+    };
+
     Ok(fs::write(path, data)?)
 }
