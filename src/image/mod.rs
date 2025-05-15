@@ -33,13 +33,13 @@ impl Image {
             return Err(Error::InputMissing(path));
         }
 
-        /// Evaluates an expression that may raise a PNG decoding error.
+        /// Unwraps a result or propagates its PNG decoding error.
         macro_rules! try_decode {
             ($expr:expr) => {
-                (match ($expr) {
+                match $expr {
                     Ok(value) => value,
-                    Err::<_, DecodeError>(error) => return Err(Error::Decode(path, error)),
-                })
+                    Err(error) => return Err(Error::Decode(path, error)),
+                }
             };
         }
 
