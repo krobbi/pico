@@ -78,8 +78,8 @@ impl PngCursor {
         let value = self.read_u8()?;
 
         match ColorType::from_u8(value) {
-            Some(color_type) => Ok(color_type),
             None => Err(Error::InvalidColorType(value)),
+            Some(color_type) => Ok(color_type),
         }
     }
 

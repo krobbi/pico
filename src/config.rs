@@ -38,11 +38,11 @@ impl Config {
         let input_paths: Vec<PathBuf> = matches.remove_many("INPUT").unwrap_or_default().collect();
 
         let output_path = match matches.remove_one("output") {
-            Some(path) => path,
             None => input_paths
                 .first()
                 .expect("usage string should guarantee that `input_paths` is not empty")
                 .with_extension("ico"),
+            Some(path) => path,
         };
 
         Ok(Self {
